@@ -92,7 +92,7 @@ TEMPLATES = [
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
-# 在云服务器上用户：root，密码：zgp210317
+
 DATABASES = {
     'default': {
         #'ENGINE': 'django.db.backends.sqlite3',
@@ -100,7 +100,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'db_mydjango',
         'USER': 'root',
-        'PASSWORD': 'zgp210317',
+        'PASSWORD': '',
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'OPTIONS':
@@ -160,14 +160,14 @@ LOGIN_URL = '/account/new-login/'
 # 配置邮件发送服务器
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_HOST = 'smtp.163.com'
-EMAIL_HOST_USER = "zgpnuaa@163.com"
+EMAIL_HOST_USER = ""
 # 此处的密码为163邮箱的客户端授权码，而非邮箱登录密码
 # 授权码是用于登录第三方邮件客户端的专用密码。
 # 适用于登录以下服务: POP3/IMAP/SMTP/Exchange/CardDAV/CalDAV服务
-EMAIL_HOST_PASSWORD = "zgp317210"
+EMAIL_HOST_PASSWORD = ""
 EMAIL_PORT = 25
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = "zgpnuaa@163.com"
+DEFAULT_FROM_EMAIL = ""
 
 
 MEDIA_URL = '/media/'
@@ -196,8 +196,8 @@ AUTHENTICATION_BACKENDS = (
 SOCIAL_AUTH_URL_NAMESPACE = 'social'
 SOCIAL_AUTH_TRAILING_SLASH = False
 # 开放平台的APPID和SECRET
-SOCIAL_AUTH_WEIBO_KEY = '3645454303'
-SOCIAL_AUTH_WEIBO_SECRET = '9ebb839baf02e36068c8765dcd9f06e3'
+SOCIAL_AUTH_WEIBO_KEY = ''
+SOCIAL_AUTH_WEIBO_SECRET = ''
 
 # 注册成功后的跳转页面
 SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/account/get-userinfo/'
@@ -206,14 +206,14 @@ SOCIAL_AUTH_LOGIN_ERROR_URL = '/account/settings/'
 SOCIAL_AUTH_RAISE_EXCEPTIONS = False
 # WEIBO_CALLBACK_URL = 'http://127.0.0.1:8000/oauth/weibo_check'
 
-SOCIAL_AUTH_QQ_KEY = '101728923'
-SOCIAL_AUTH_QQ_SECRET = '9b0a32c3f89ee4457245156603213a56'
+SOCIAL_AUTH_QQ_KEY = ''
+SOCIAL_AUTH_QQ_SECRET = ''
 
 SOCIAL_AUTH_WEIXIN_KEY = ''
 SOCIAL_AUTH_WEIXIN_SECRET = ''
 
-SOCIAL_AUTH_GITHUB_KEY = '23a39a750e58aefa092f'
-SOCIAL_AUTH_GITHUB_SECRET = '25773a40551e4c9498d290857c0ad02b14c9b8ff'
+SOCIAL_AUTH_GITHUB_KEY = ''
+SOCIAL_AUTH_GITHUB_SECRET = ''
 
 # 配置haystack
 HAYSTACK_CONNECTIONS = {
