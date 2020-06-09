@@ -1,0 +1,256 @@
+{% extends "article/base.html" %}
+{% load staticfiles %}
+{% block title %}文章列表{% endblock %}
+{% block content %}
+
+<div>
+    {% if classification == 0 %}
+    <h4>草稿箱</h4>
+    {%  elif classification == 2  %}
+    <h4>已发布</h4>
+    {% else %}
+    <h4>流转中</h4>
+    {% endif %}
+    <table class="table table-hover">
+        <tr>
+            <td>序号</td>
+            <td>标题</td>
+            <td>栏目</td>
+            <td>状态</td>
+            <td style="text-align:center;vertical-align:middle;">操作</td>
+        </tr>
+        {% for article in articles %}
+        <tr id={{article.id}}>
+            <td>{{forloop.counter}}</td>
+            <td><a href="{{ article.get_absolute_url }}" data-toggle="tooltip" data-placement="top" title="查看文章">{{article.title}}</a> </td>
+            <td><a href="{% url 'article:column_filter' article.column.column %}" >{{article.column.column}}</a></td>
+            <td><a name="edit" href="{% url 'article:queue_approve' article.id %}">{{article.state}}</a></td>
+            <td style="text-align:center;vertical-align:middle;">
+                {% if article.state == "草稿" or article.state == "被驳回" or article.state == "已撤回" %}
+                 <a name="edit" href="{% url 'article:redit_article' article.id %}"><span class="glyphicon glyphicon-pencil" data-toggle="tooltip" data-placement="top" title="编辑文章"></span></a>
+                 <a name="submit" href="javascript:" onclick="submit_approve(this,{{article.id}})"><span class="fa fa-upload" style="margin-left:20px;" data-toggle="tooltip" data-placement="top" title="提交审批"></span></a>
+                 <a name="delete" href="javascript:" onclick="del_article(this,{{article.id}})"><span class="glyphicon glyphicon-trash" style="margin-left:20px;" data-toggle="tooltip" data-placement="top" title="删除文章"></span></a>
+                {% elif article.state == "审批中" %}
+                <a name="undo" href="javascript:" onclick="undo_approve(this,{{article.id}})"><span class="fa fa-undo" style="margin-left:0px;" data-toggle="tooltip" data-placement="top" title="撤回审批"></span></a>
+                {% elif article.state == "已发布" %}
+                <a href="{{article.get_url_path}}"  style="width：100%；margin-top:10px;margin-left: 0px;background-color:white ;border:none; border-top-left-radius:10px;border-top-right-radius:10px;border-bottom-left-radius:10px;border-bottom-right-radius:10px; " >查看</a>
+                {% endif %}
+
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% include "paginator.html" %}
+</div>
+
+<script type="text/javascript" src="{% static 'js/layer.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/jquery.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/fontawesome-free-5.8.1-web/css/all.min.css' %}"/>
+<link rel="stylesheet" href="{% static 'zTree_v3-master/css/zTreeStyle/zTreeStyle.css' %}" type="text/css">
+<link rel="stylesheet" href="{% static 'zTree_v3-master/css/demo.css' %}"  type="text/css">
+<script type="text/javascript" src="{% static 'zTree_v3-master/js/jquery.ztree.core.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'zTree_v3-master/js/jquery.ztree.excheck.js' %}"></script>
+<script type="text/javascript">
+    function del_article(the, article_id){
+            var article_name = $(the).parents("tr").children("td").eq(1).text();
+            layer.open({
+                    type: 1,
+                    skin: "layui-layer-rim",
+                    area: ["400px", "200px"],
+                    title: "删除文章",
+                    content:'<div class="text-center" style="margin-top:20px"><p>确定要删除《'+article_name+'》吗？</p></div>',
+                    btn:['删除', '取消'],
+                    yes: function(){
+                            $.ajax({
+                                    {#模板url的冒号后不能加空格，否则找不到冒号后的url #}
+                                    url: '{% url "article:del_article" %}',
+                                    type:"POST",
+                                    data: {"article_id":article_id},
+                                    success: function(e){
+                                            if(e=="1"){
+                                                    parent.location.reload();
+                                                    layer.msg("删除成功！");
+                                                    }else{
+                                                        layer.msg("删除失败！");
+                                                        parent.location.reload();
+                                                        }
+                                            },
+                                    })
+                             },
+                     });
+             }
+</script>
+<script type="text/javascript">
+    function submit_approve(the, article_id){
+        var index = layer.open({
+            type: 1,
+            skin: "layui-layer-rim",
+            area: ["750px", "760px"],
+            title: "选择审批人",
+            content: '<div class="text-center" style="margin-top:20px"><p>请选择审批人：</p><div class="text-center" style="margin-top:10px;margin-left:56px;margin-bottom:10px" ><ul id="treeDemo" class="ztree"></ul></div></div><div class="text-center" style="margin-top:20px">发布意见:</div><div class="text-center" style="margin-top:8px"><textarea id="opinion"   cols="40"   rows="6"   style="OVERFLOW:   hidden" placeholder="本文对...很有帮助">本文对...很有帮助。</textarea></div>',
+            btn: ['提交', '取消'],
+            yes: function(index, layero){
+            var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+			var checkenode = zTree.getNodesByFilter(filterChecked, false);
+                console.log(checkenode);
+                var approvers =[];
+                for(var i=0;i<checkenode.length;i++)
+                {
+                   approvers[i]=checkenode[i].username;
+                }
+             console.log(approvers);
+             var opinion = $("#opinion").val();
+               $(".layui-layer-btn0").attr('disabled',true);
+                          $(".layui-layer-btn0").css("pointer-events","none");
+                          $(".layui-layer-btn0").text("提交中...");
+                    $.ajax({
+                        url: '{% url "article:submit_approve" %}',
+                        type: 'POST',
+                        data: {"article_id": article_id, "approvers":JSON.stringify(approvers),"opinion":opinion},
+                        success:function(e){
+                                if(e=="2"){
+                                  $(".layui-layer-btn0").attr('disabled',false);
+                                     $(".layui-layer-btn0").css("pointer-events","auto");
+                                    $(".layui-layer-btn0").text("确认");
+                                    layer.msg("出错了!");
+                                    }
+                                    else if(e=="11"){ $(".layui-layer-btn0").attr("disabled",true);
+                                    $(".layui-layer-btn0").css("pointer-events","none");
+                                    layer.msg("审批中!");
+                                    parent.location.reload();}
+                                    else if(e=="22"){ $(".layui-layer-btn0").attr("disabled",true);
+                                    $(".layui-layer-btn0").css("pointer-events","none");
+                                    layer.msg("已发布!");
+                                    parent.location.reload();}
+                                    else if(e=="55"){ $(".layui-layer-btn0").attr("disabled",true);
+                                    $(".layui-layer-btn0").css("pointer-events","none");
+                                    layer.msg("已删除!");
+                                    parent.location.reload();}
+                                    else {
+                                     $(".layui-layer-btn0").attr("disabled",true);
+                                    $(".layui-layer-btn0").css("pointer-events","none");
+                                    layer.msg("提交成功!");
+                                    parent.location.reload();}
+                             },
+                         });
+
+                   },
+            btn2: function(index, layero){
+                    layer.close(index);
+                    }
+           });
+            createTree();
+       }
+</script>
+<script type="text/javascript">
+    function undo_approve(the, article_id){
+
+        var index = layer.open({
+            type: 1,
+            skin: "layui-layer-rim",
+            area: ["500px", "300px"],
+            title: "撤回流程",
+            content: '<div  class="text-center" style="margin-top:10px">撤回原因:</div><div class="text-center" style="margin-top:8px"><textarea id="opinion"   cols="40"   rows="6"   style="OVERFLOW:   hidden" placeholder="需要修改部分内容">需要修改部分内容。</textarea></div>',
+            btn: ['撤回', '取消'],
+            yes: function(index, layero){
+                     var opinion = $("#opinion").val();
+               $(".layui-layer-btn0").attr('disabled',true);
+                          $(".layui-layer-btn0").css("pointer-events","none");
+                          $(".layui-layer-btn0").text("撤回中...");
+
+                    $.ajax({
+                        url: '{% url "article:undo_approve" %}',
+                        type: 'POST',
+                        data: {"article_id": article_id, "opinion":opinion},
+                        success:function(e){
+                                if(e=="2"){
+                                  $(".layui-layer-btn0").attr('disabled',false);
+                                     $(".layui-layer-btn0").css("pointer-events","auto");
+                                    $(".layui-layer-btn0").text("确认");
+                                    layer.msg("出错了!");
+                                    parent.location.reload();
+                                    }
+                                    else if(e=="3"){ $(".layui-layer-btn0").attr("disabled",true);
+                                    $(".layui-layer-btn0").css("pointer-events","none");
+                                    layer.msg("流程已被驳回!");
+                                    parent.location.reload();}
+                                    else if(e=="5"){ $(".layui-layer-btn0").attr("disabled",true);
+                                    $(".layui-layer-btn0").css("pointer-events","none");
+                                    layer.msg("已发布!");
+                                    parent.location.reload();}
+                                    else {
+                                     $(".layui-layer-btn0").attr("disabled",true);
+                                    $(".layui-layer-btn0").css("pointer-events","none");
+                                    layer.msg("撤回成功!");
+                                    parent.location.reload();}
+                             },
+                         });
+
+                   },
+            btn2: function(index, layero){
+                    layer.close(index);
+                    }
+           });
+            createTree();
+       }
+</script>
+<script type="text/javascript">
+		<!--
+
+		var setting = {
+			view: {
+				selectedMulti: false
+			},
+			check: {
+				enable: true
+			},
+			data: {
+				simpleData: {
+					enable: true
+				}
+			},
+			callback: {
+				onCheck: onCheck
+			}
+		};
+
+		var zNodes ={{interviewees | safe}};
+
+		var clearFlag = false;
+		function onCheck(e, treeId, treeNode) {
+
+			if (clearFlag) {
+				clearCheckedOldNodes();
+			}
+		}
+		function clearCheckedOldNodes() {
+			var zTree = $.fn.zTree.getZTreeObj("treeDemo"),
+			nodes = zTree.getChangeCheckedNodes();
+			for (var i=0, l=nodes.length; i<l; i++) {
+				nodes[i].checkedOld = nodes[i].checked;
+			}
+		}
+
+		function filterNotparent(node) {
+			return !node.isParent ;
+		}
+		function filterChecked(node) {
+			return !node.isParent && node.checked;
+		}
+		function filterUnchecked(node) {
+			return !node.isParent && !node.checked;
+		}
+		function createTree() {
+			$.fn.zTree.init($("#treeDemo"), setting, zNodes);
+			clearFlag = $("#last").attr("checked");
+		}
+
+		$(document).ready(function(){
+			createTree();
+			$("#init").bind("change", createTree);
+			$("#last").bind("change", createTree);
+		});
+		//-->
+
+	</script>
+{% endblock %}

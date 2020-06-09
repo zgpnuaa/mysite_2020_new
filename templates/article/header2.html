@@ -1,0 +1,61 @@
+
+{% load staticfiles %}
+{% load article_tags %}
+<div class="container">
+    <nav class="navbar  navvar-expand-lg navbar-default" role="navigation">
+
+    <div class="navbar-header">
+        <a class="navbar-brand" href="{% url 'home' %}" style="margin-top:-30px;margin-bottom:70px"><img src="{% static '/images/liuhuaisland2.png' %}" width="90px"> </a>
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#example-navbar-collapse"><span class="sr-only">切换导航</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span></button>
+    </div>
+    <div class="collapse navbar-collapse" id="example-navbar-collapse">
+        <ul class="nav navbar-nav" role="navigation">
+            <!--<li><a href="{% url 'home' %}">主页</a> </li>-->
+
+            <li  style="font-size:14px;margin-top:11px;"><a href="{% url 'article:article_titles' %}">文章</a> </li>
+            <li  style="font-size:14px;margin-top:11px;"><a href="{% url 'image:falls_images' %}">美图</a> </li>
+            <li  style="font-size:14px;margin-top:11px;"><a href="{% url 'astrologychart:astrologychart' %}">星晴</a> </li>
+            <!-- <li><a href="{% url 'course:course_list' %}">课程</a> </li>-->
+            <li  style="font-size:14px;margin-top:11px;"><a href="{% url 'course:about' %}">关于</a> </li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right" style="margin-right:10px">
+            {% if user.is_authenticated %}
+            <li>
+                <div class="dropdown" style="margin-top:8px">
+                    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu" data-toggle="dropdown">
+                        {% if unread_count %}
+                            <svg viewBox="0 0 8 8" width="8px"height="8px"> <circle cx="4"cy="4"r="4"fill="#ff6b6b" ></circle></svg>
+                        {% endif %}
+                        <img src="{% user_photo user_request %}" class="img-rounded" width='30px'><span style="margin-left:5px;margin-right:5px;">{{ user_request.first_name }}</span><span class="caret"></span> </button>
+                    <ul class="dropdown-menu">
+                        <li ><a href="{% url 'chat:friendchat' %}">通讯录</a></li>
+                        <li><a href="{% url 'notice:list' %}">
+                            消息通知
+                            {% if unread_count %}
+                                <span class="badge badge-danger" style="background-color:#ff6b6b">{{ unread_count }}</span>
+                            {% endif %}
+                        </a></li>
+                        <!--<li><a href="{% url 'account:password_change' %}">修改密码</a> </li>-->
+                        <li><a href="{% url 'account:my_information' %}">个人信息</a> </li>
+                        <li><a href="{% url 'article:article_post' %}">后台管理</a> </li>
+                        <li><a href="{% url 'account:settings' %}">账号管理</a></li>
+                    </ul>
+                </div>
+            </li>
+            <li  style="font-size:14px"><a href="{% url 'account:user_logout' %}">退出</a> </li>
+            {% else %}
+            <li  style="font-size:14px"><a href="{% url 'account:user_login' %}">登陆</a></li>
+            <li  style="font-size:14px"><a href="{% url 'account:user_register' %}">注册</a> </li>
+            {% endif %}
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+
+        </ul>
+    </div>
+    </nav>
+</div>
+<script src="{% static 'js/jquery.js' %}"></script>
+<script src="{% static 'js/bootstrap.js' %}"></script>

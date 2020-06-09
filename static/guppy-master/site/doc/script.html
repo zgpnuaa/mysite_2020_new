@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Guppy: Scripting the editor</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../build/guppy-default-osk.min.css">
+    <script type="text/javascript" src="../build/guppy.min.js"></script>
+    <script type="text/javascript" src="../build/guppy_osk.js"></script>
+
+    <script type="text/javascript" src="index.js"></script>
+    <link rel="stylesheet" href="../style/guppy.css">
+    <link rel="stylesheet" href="../index.css">
+
+</head>
+
+<body>
+
+  <div class="container">
+    <nav class="navbar">
+	<div class="navbar-header">
+	  <a class="navbar-brand" href="/">Guppy <font color="red">(BETA)</font></a>
+	</div>
+	
+	<ul class="nav navbar-nav pull-right">
+	  <li><a href="../doc/quickstart.html">Quick start</a></li>
+	  <li><a href="../examples/">Examples</a></li>
+	  <li><a href="../doc/">Docs</a></li>
+	  <li><a href="../api/guppy-js/2.0.0-rc.1/">API</a></li>
+	  <li><a href="https://github.com/daniel3735928559/guppy">Source</a></li>
+	  <li><a href="../contribute/">Contributing</a></li>
+	</ul>
+    </nav>
+    <h2>Scripting the editor</h2>
+        <p>Any Guppy instance can be controlled from javascript. For example, you can create some buttons that perform actions in the editor (such as moving the cursor right and left or inserting an integral symbol).</p>
+<p>The object that allows most of this is the <code>Engine</code> instance associated with an editor. If we have an editor with ID &#8220;guppy1&#8221;, we can access its <code>Engine</code> with <code>Guppy(&quot;guppy1&quot;).engine</code>. Functions available from this object are documented in the API <a href="../api/guppy-js/2.0.0-rc.1/Engine.html">here</a>.</p>
+<p>For example, to move the cursor one space to the left, insert the letter &#8220;x&#8221;, and then delete what comes after it, we can do:</p>
+<pre><code>var e = Guppy(&quot;guppy1&quot;).engine;
+e.left();
+e.insert_string(&quot;x&quot;);
+e.delete_key();</code></pre>
+  </div>
+</body>
+
+</html>

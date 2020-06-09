@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load article_tags %}
+{% block title %}个人简介{% endblock %}
+{% block content %}
+<div class="row text-center vertical-middle-sm">
+    <h1>个人介绍</h1>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="row" style="margin-right:10px;margin-top:20px">
+                <div class="col-md-4 text-center"><span class="text-right">昵称:</span></div>
+                <div class="col-md-8 text-center">{{ user.username }}</div>
+            </div>
+            <div class="row" style="margin-right:10px;margin-top:20px">
+                <div class="col-md-4 text-center"><span>邮箱:</span></div>
+                <div class="col-md-8 text-center">{{ user.email }}</div>
+            </div>
+            <div class="row" style="margin-right:10px;margin-top:20px">
+                <div class="col-md-4 text-center"><span>生日:</span></div>
+                <div class="col-md-8 text-center">{{ userprofile.birth }}</div>
+            </div>
+            <div class="row" style="margin-right:10px;margin-top:20px">
+                <div class="col-md-4 text-center"><span>电话:</span></div>
+                <div class="col-md-8 text-center">{{ userprofile.phone }}</div>
+            </div>
+            <div class="row" style="margin-right:10px;margin-top:20px">
+                <div class="col-md-4 text-center"><span>毕业院校:</span></div>
+                <div class="col-md-8 text-center">{{ userinfo.school }}</div>
+            </div>
+            <div class="row" style="margin-right:10px;margin-top:20px">
+                <div class="col-md-4 text-center"><span>单位:</span></div>
+                <div class="col-md-8 text-center">{{ userinfo.company }}</div>
+            </div>
+            <div class="row" style="margin-right:10px;margin-top:20px">
+                <div class="col-md-4 text-center"><span>专业:</span></div>
+                <div class="col-md-8 text-center">{{ userinfo.profession }}</div>
+            </div>
+            <div class="row" style="margin-right:10px;margin-top:20px">
+                <div class="col-md-4 text-center"><span>住址:</span></div>
+                <div class="col-md-8 text-center">{{ userinfo.address }}</div>
+            </div>
+            <div class="row" style="margin-right:10px;margin-top:20px">
+                <div class="col-md-4 text-center"><span>个人介绍：</span></div>
+                <div class="col-md-8 text-center">{{ userinfo.aboutme }}</div>
+            </div>
+            <a href="{% url 'account:edit_my_information' %}"><button  style="margin-right:10px;margin-top:30px" class="btn btn-primary btn-lg">编辑个人信息</button> </a>
+        </div>
+        <div class="col-md-6">
+            <p></p>
+            {% load staticfiles %}
+            <div style="margin-right:10px">
+                 {% load staticfiles %}
+                <div style="margin-right:10px">
+
+                        <img name="userface" src="{% user_photo user %}" class="img-circle" width="270px" id="my_photo">
+
+                </div>
+                <div style="margin-right:10px;margin-top:20px"><button class="btn btn-primary btn-lg" id="upload_image" onclick="upload_image_layer()">更换头像</button> </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script type="text/javascript" src='{% static "js/jquery.js" %}'></script>
+<script type="text/javascript" src='{% static "js/layer.js" %}'></script>
+<script>
+    function upload_image_layer(){
+    layer.open({
+        //content:"<p>hello world</p>",
+        title: "上传头像",
+        area: ['850px', '600px'],
+        type: 2,
+        content:"{% url 'account:my_image' %}",
+        });
+        }
+</script>
+{% endblock %}

@@ -1,0 +1,168 @@
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+<meta charset="UTF-8" />
+<title>服务器监控信息</title>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+<script language="JavaScript">
+$(document).ready(function() {
+    $("#servers").change(function (){
+        var selected = $(this).children('option:selected').val();
+        var server_res = jQuery.parseJSON('{{ server_res|safe }}');
+
+        var cpu_res = server_res['cpu_res']
+        var cpu_info = cpu_res[selected]
+
+        Highcharts.setOptions({
+            global:{
+                useUTC: false
+                }
+            });
+        Highcharts.chart('cpu', {
+            chart: {
+                zoomType: 'x'
+            },
+            title: {
+                text: selected + ': CPU 信息'
+            },
+            subtitle: {
+                text: document.ontouchstart === undefined ?
+                    'Click and drag in the plot area to zoom in' : 'Pinch the chart to zoom in'
+            },
+            xAxis: {
+                type: 'datetime'
+            },
+            yAxis: {
+                title: {
+                    text: '使用率 (%)'
+                }
+            },
+            legend: {
+                enabled: false
+            },
+            plotOptions: {
+                area: {
+                    fillColor: {
+                        linearGradient: {
+                            x1: 0,
+                            y1: 0,
+                            x2: 0,
+                            y2: 1
+                        },
+                        stops: [
+                            [0, Highcharts.getOptions().colors[0]],
+                            [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                        ]
+                    },
+                    marker: {
+                        radius: 2
+                    },
+                    lineWidth: 1,
+                    states: {
+                        hover: {
+                            lineWidth: 1
+                        }
+                    },
+                    threshold: null
+                }
+            },
+
+            series: [
+                {
+                   type: 'area',
+                   name: 'usage_system',
+                   data: cpu_info['usage_system']
+                },
+                {
+                   type: 'area',
+                   name: 'usage_user',
+                   data: cpu_info['usage_user']
+                },
+                {
+                   type: 'area',
+                   name: 'usage_softirq',
+                   data: cpu_info['usage_softirq']
+                },
+                {
+                   type: 'area',
+                   name: 'usage_iowait',
+                   data: cpu_info['usage_iowait']
+                }]
+        });
+
+
+        var mem_res = server_res['mem_res']
+        var mem_info = mem_res[selected]
+        Highcharts.chart('mem', {
+            chart: {
+                zoomType: 'x'
+            },
+            title: {
+                text: selected + ': 内存信息'
+            },
+            subtitle: {
+                text: document.ontouchstart === undefined ?
+                    'Click and drag in the plot area to zoom in' : 'Pinch the chart to zoom in'
+            },
+            xAxis: {
+                type: 'datetime'
+            },
+            yAxis: {
+                title: {
+                    text: '使用率 (%)'
+                }
+            },
+            legend: {
+                enabled: false
+            },
+            plotOptions: {
+                area: {
+                    fillColor: {
+                        linearGradient: {
+                            x1: 0,
+                            y1: 0,
+                            x2: 0,
+                            y2: 1
+                        },
+                        stops: [
+                            [0, Highcharts.getOptions().colors[0]],
+                            [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                        ]
+                    },
+                    marker: {
+                        radius: 2
+                    },
+                    lineWidth: 1,
+                    states: {
+                        hover: {
+                            lineWidth: 1
+                        }
+                    },
+                    threshold: null
+                }
+            },
+
+            series: [{
+                type: 'area',
+                name: 'used_percent',
+                data: mem_info
+            }]
+        });
+    });
+});
+</script>
+</head>
+<body>
+<div><H2>服务器监控信息</H2></div>
+<select id="servers">
+    <option value="servers">请选择要监控的服务器</option>
+    <option value="rotestZone01">zhugaoping</option>
+    <!--<option value="rotestZone02">rotestZone02</option>-->
+</select>
+
+<div id="cpu" style="width: 1560px; height: 400px; margin: 0 auto"></div>
+<div id="mem" style="width: 1560px; height: 400px; margin: 0 auto"></div>
+</body>
+</html>

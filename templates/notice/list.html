@@ -1,0 +1,35 @@
+{%  extends "base.html" %}
+{%  load staticfiles %}
+
+{% block title %}
+消息通知
+{% endblock title %}
+
+{% block content %}
+<div class="container">
+    {% if notices %}
+    <div class="row mt-4 ml-4">
+        <a href="{% url 'notice:update' %}" class="btn btn-warning" role="button">清空消息通知</a>
+    </div>
+    <div class="row mt-2 ml-4">
+        <ul class="list-group">
+            {% for notice in notices %}
+                <li class="list-group-item" id="notice_link">
+                    <a href="{% url 'notice:update' %}?article_id={{notice.target.id}}&notice_id={{ notice.id }}" target="_blank"  rel="noopener noreferrer">
+                        <span style="color: blue">{{notice.actor}}</span>在文章《<span style="color:red">{{notice.target.title}}</span>》中{{notice.verb}}。<span style="margin-left:20px;color:grey;">{{notice.timestamp| date:"Y/m/d H:i"}}</span>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% else %}
+    <div class="row mt-4 ml-4">
+        <a href="{% url 'notice:update' %}" class="btn btn-warning" style="background-color:blue" role="button">目前还没有消息通知哦～</a>
+    </div>
+    {% endif %}
+</div>
+<style>
+    #notice_link a:link {color:black;}
+    #notice_link a:visited {color:lightgrey;}
+</style>
+{% endblock content %}

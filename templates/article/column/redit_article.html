@@ -1,0 +1,1679 @@
+{% extends "article/base.html" %}
+{% load staticfiles %}
+{% block title %}编辑文章{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'editor/css/style.css' %} ">
+<link rel="stylesheet" href="{% static 'editor/css/editormd.css' %}">
+<div class="container">
+    <div style="margin-left:10px">
+        <div class="row" style="margin-top:10px;">
+            <div class="col-md-2 text-right"><span>标题:</span></div>
+            <div class="col-md-10 text-left">{{this_article_form.title}}</div>
+        </div>
+<!--        <div class="row" style="margin-top:10px;">-->
+<!--            <div class="col-md-2 text-right"><span>栏目:</span></div>-->
+<!--            <div class="col-md-10 text-left">-->
+<!--                <select id="which_column">-->
+<!--                    {% for column in article_columns %}-->
+<!--                        {% if column.column == this_article_column.column %}-->
+<!--                        <option value="{{column.id}}" selected="selected">{{column.column}}</option>-->
+<!--                        {% else %}-->
+<!--                        <option value="{{column.id}}">{{column.column}}</option>-->
+<!--                        {% endif %}-->
+<!--                    {% endfor %}-->
+<!--                </select>-->
+<!--            </div>-->
+<!--        </div>-->
+         <div class="row" style="margin-top:10px;">
+            <div class="col-md-2 text-right" id="columnselect"><span>栏目:</span></div>
+
+            {% if article_columns.count == 0 %}
+            <p id="nocolumn">您还没有文章栏目，请<button id="addcolumn" onclick="add_column(0)" class="btn  btn-primary btn-xs" style="margin-left:8px">创建栏目</button> </p>
+
+            {% else %}
+            <div class="col-md-5 text-left">
+                <select id="which_column">
+                    {% for column in article_columns %}
+                        {% if column.column == this_article_column.column %}
+                        <option value="{{column.id}}" selected="selected">{{column.column}}</option>
+                        {% else %}
+                        <option value="{{column.id}}">{{column.column}}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-5 text-right"  ><button id="addcolumn" onclick="add_column(1)" class="btn  btn-success btn-xs">+栏目</button> </div>
+            {% endif %}
+        </div>
+         <div class="row" style="margin-top:10px;">
+            <div class="col-md-2 text-right" id="tagselect"><span>标签:</span></div>
+            {% if article_tags.count == 0 %}
+             <p>您还没有文章标签，请<button id="addtag" onclick="add_tagnew(0)" class="btn  btn-primary btn-xs"  style="margin-left:8px">创建标签</button> </p>
+             {% else %}
+            <div class="col-md-5  text-left">
+                {% for tag in article_tags %}
+                {% for tag_this in this_article_tags.all %}
+                {% if tag.tag == tag_this.tag %}
+                <label class="checkbox-inline">
+                    <input class="tagcheckbox" type="checkbox" id="{{tag.id}}" name="article_tag" checked="checked" value="{{tag.tag}}">{{tag.tag}}
+                </label>
+                {{ "<!--" }}
+                {% endif %}
+                {% endfor %}
+                <label class="checkbox-inline">
+                    <input class="tagcheckbox" type="checkbox" id="{{tag.id}}" name="article_tag" value="{{tag.tag}}">{{tag.tag}}
+                </label><!--
+                {{ "-->" }}
+                {% endfor %}
+            </div>
+            <div class="col-md-5 text-right"  ><button id="addtag" onclick="add_tagnew(1)" class="btn  btn-success btn-xs">+标签</button> </div>
+            {% endif %}
+        </div>
+        <div class="row" style="margin-top:10px;">
+            <div class="col-md-2 text-right"><span>内容:</span></div>
+            <div id="editormd" class="col-md-10 text-left"><!--{{article_post_form.body}}-->
+                <textarea style="display:none;" id="id_body">{{article.body}}</textarea>
+            </div>
+        </div>
+
+        <div class="text-left" style="margin-top:20px" >
+         <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseAll">
+         <button id="" onclick="" class="btn  btn-success btn-sm">+问卷/投票</button>
+         </a>
+        <div id="collapseAll" class="accordion-body collapse" style="height: 0px;margin-top:10px;border:solid 1px lightgray ">
+            <div class="accordion-inner" >
+
+               <ol id="survey"></ol>
+                <div class="text-left" style="margin-top:20px;margin-bottom:20px" ><button id="addsurvey" onclick="add_survey()"style="margin-left:16px" class="btn  btn-info btn-xs">+问题及选项</button> </div>
+                <div class="accordion-group">
+				<div class="accordion-heading" >
+					<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseOne"style="margin-top:20px;margin-left:16px">
+						<button id="addgroups"  class="btn  btn-info btn-xs" >设置问卷/投票范围</button><label >(默认全部)</label>
+					</a>
+
+				</div>
+				<div id="collapseOne" class="accordion-body collapse" style="height: 0px;">
+					<div class="accordion-inner" >
+						<div class="row text-center" style="margin-top:10px;margin-left:56px;margin-bottom:10px" >
+                            <ul id="treeDemo" class="ztree"></ul>
+                        </div>
+                        <div style="margin-bottom:15px;margin-left:56px">
+                        <div >
+                            <label>总人数:</label> <span id="TotalCount" class="highlight_red">0</span>
+                        </div>
+                        <div>
+                            <label>当前可投票总人数:</label> <span id="checkCount" class="highlight_red">0</span>
+                        </div>
+                        <div>
+                            <label>当前不可投票总人数:</label> <span id="nocheckCount" class="highlight_red">0</span>
+                        </div>
+                        </div>
+				</div>
+			</div>
+
+    </div>
+                <div class=" text-left" style="margin-top:20px;margin-bottom:20px;" >
+         <div class="accordion-heading">
+         <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseanonymous"style="margin-bottom:20px;margin-left:16px">
+         <button id="addanonymous" class="btn  btn-info btn-xs" >设置问卷/投票类型</button><label>(默认匿名制)</label>
+         </a>
+
+         </div>
+         <div id="collapseanonymous" class="accordion-body collapse" style="height: 0px; ">
+					<div class="accordion-inner">
+                        {% if voteanonymousornot == True%}
+                  <div style="margin-left:25px;margin-top:10px"> <label><input id="anonymous" name="anonymous" type="radio" checked  />匿名制 </label>
+                        <label><input name="anonymous" type="radio" />实名制  </label>
+                        {% else %}
+                      <div style="margin-left:25px;margin-top:10px"> <label><input id="anonymous" name="anonymous" type="radio"   />匿名制 </label>
+                        <label><input name="anonymous" type="radio" checked />实名制  </label>
+                      {% endif %}
+                </div>
+             </div>
+         </div>
+         </div>
+
+     <div class=" text-left" style="margin-top:20px;margin-bottom:20px;" >
+         <div class="accordion-heading">
+         <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseDeadline"style="margin-bottom:20px;margin-left:16px">
+         <button id="adddeadline" class="btn  btn-info btn-xs" >设置问卷/投票截止时间</button><label>(默认15天)</label>
+         </a>
+         </div>
+         <div id="collapseDeadline" class="accordion-body collapse" style="height: 0px; ">
+					<div class="accordion-inner">
+     <div style="display: flex; position: relative;">
+          <input type="text" id="date-input" style="width:20em;display: block;margin-bottom:10px;margin-top:6px;margin-left:20px" class="date-time-picker" readonly="readonly">
+          </div>
+             </div>
+         </div>
+         </div>
+         </div>
+     </div>
+         </div>
+
+        <div class="text-left" style="margin-top:10px;margin-right:20px">
+            <input type="button" class="btn btn-primary btn-lg" value="保存" onclick="redit_article()">
+        </div>
+
+    </div>
+</div>
+
+
+<div id="foo" style="width: 100%; height: 100%"><div class="progress progress-striped text-center" style="width:100%;"><div id="upload-progress" class="progress-bar progress-bar-success" ></div></div>
+    <div id="total-size" class="text-center" ></div><div id="upload-ratio" class="text-center" ></div><div id="upload-percent" class="text-center" ></div> </div>
+<!--重复引用了jquery-->
+<!--<script type="text/javascript" src="{% static 'js/jquery-1.11.1.min.js' %}"></script>-->
+<script type="text/javascript" src="{% static 'js/layer.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/json2.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/spin.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/spin.css' %} ">
+
+<link rel="stylesheet" href="{% static 'zTree_v3-master/css/zTreeStyle/zTreeStyle.css' %}" type="text/css">
+<link rel="stylesheet" href="{% static 'zTree_v3-master/css/demo.css' %}"  type="text/css">
+<script type="text/javascript" src="{% static 'zTree_v3-master/js/jquery.ztree.core.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'zTree_v3-master/js/jquery.ztree.excheck.js' %}"></script>
+<!--<script type="text/javascript" src="{% static 'zTree_v3-master/js/jquery.ztree.exedit.js' %}"></script>-->
+<!--<script type="text/javascript" src="{% static 'zTree_v3-master/js/jquery.ztree.exhide.js' %}"></script>-->
+<link rel="stylesheet" href="{% static 'css/myDatepicker.css' %}"  type="text/css">
+<script type="text/javascript" src="{% static 'js/myDatepicker.js' %}"></script>
+<script type="text/javascript">
+		<!--
+
+		var setting = {
+			view: {
+				selectedMulti: false
+			},
+			check: {
+				enable: true
+			},
+			data: {
+				simpleData: {
+					enable: true
+				}
+			},
+			callback: {
+				onCheck: onCheck
+			}
+		};
+
+		var zNodes ={{interviewees | safe}};
+
+		var clearFlag = false;
+		function onCheck(e, treeId, treeNode) {
+			count();
+			if (clearFlag) {
+				clearCheckedOldNodes();
+			}
+		}
+		function clearCheckedOldNodes() {
+			var zTree = $.fn.zTree.getZTreeObj("treeDemo"),
+			nodes = zTree.getChangeCheckedNodes();
+			for (var i=0, l=nodes.length; i<l; i++) {
+				nodes[i].checkedOld = nodes[i].checked;
+			}
+		}
+		function count() {
+			var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+			 totalcount = zTree.getNodesByFilter(filterNotparent, false).length;
+			checkCount = zTree.getNodesByFilter(filterChecked, false).length;
+			nocheckCount = zTree.getNodesByFilter(filterUnchecked, false).length;
+
+			console.log(checkCount);
+			$("#checkCount").text(checkCount);
+			$("#nocheckCount").text(nocheckCount);
+			$("#TotalCount").text(totalcount);
+		}
+		function filterNotparent(node) {
+			return !node.isParent ;
+		}
+		function filterChecked(node) {
+			return !node.isParent && node.checked;
+		}
+		function filterUnchecked(node) {
+			return !node.isParent && !node.checked;
+		}
+		function createTree() {
+			$.fn.zTree.init($("#treeDemo"), setting, zNodes);
+			count();
+			clearFlag = $("#last").attr("checked");
+		}
+
+		$(document).ready(function(){
+			createTree();
+			$("#init").bind("change", createTree);
+			$("#last").bind("change", createTree);
+		});
+		//-->
+
+	</script>
+<script type="text/javascript">
+    function redit_article(){
+
+            $("#publish_button").attr('disabled',true);
+            $("#publish_button").val("保存中...");
+            var title = $("#id_title").val();
+            var column_id = $("#which_column").val();
+            var body = $("#id_body").val();
+            var article_tags = [];
+            var survey = [];
+            console.log(title);
+            console.log(column_id);
+            console.log(body);
+             console.log(olArray);
+            var olArray = $("ol#survey li.q-item");
+
+            for(var i=0;i<olArray.length;i++)
+            {
+                var li_survey=[];
+                console.log(olArray[i]);
+                console.log(olArray[i].childNodes[0].childNodes.length);
+                var listitem ;
+                if(olArray[i].childNodes[0].childNodes.length==7)
+                {
+                    require_question = false;
+                    text_question = olArray[i].childNodes[0].childNodes[0].innerHTML;
+                    listitem =olArray[i].childNodes[0].childNodes[2];
+                }
+                else
+                {    require_question = true;
+                     text_question = olArray[i].childNodes[0].childNodes[1].innerHTML;
+                     listitem =olArray[i].childNodes[0].childNodes[3];
+                }
+
+                console.log(text_question);
+                num_choices = listitem.childNodes[0].childNodes.length;
+                var choices = "";
+                console.log(num_choices);
+                type_question = listitem.getAttribute("name");
+                console.log(type_question);
+                if(type_question=="radio"||type_question=="select-multiple")
+                {
+                for(var j=0;j<num_choices;j++)
+                {  if(j==num_choices-1)
+                    {   choices =  choices+listitem.childNodes[0].childNodes[j].childNodes[0].childNodes[0].value;
+                    }
+                   else{
+                      choices =  choices+listitem.childNodes[0].childNodes[j].childNodes[0].childNodes[0].value+",";
+                        }
+                }
+                }
+                else if(type_question=="select")
+                {
+                for(var j=0;j<num_choices;j++)
+                {
+                  if(j==0) {;}
+                  else if(j==num_choices-1)
+                    {   choices =  choices+listitem.childNodes[0].childNodes[j].value;
+                    }
+                   else{
+                       console.log(listitem.childNodes[0].childNodes[j]);
+                      choices =  choices+listitem.childNodes[0].childNodes[j].value+",";
+                        }
+                        }
+                }
+                console.log("kaishi:")
+                console.log(text_question);
+                console.log(type_question);
+                console.log(choices);
+                console.log(require_question);
+                li_survey.push(text_question);
+                li_survey.push(type_question);
+                li_survey.push(choices);
+                li_survey.push(require_question);
+                survey.push(li_survey);
+            }
+
+             console.log(survey);
+              var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+			checkCount = zTree.getCheckedNodes(true).length;
+			nocheckCount = zTree.getCheckedNodes(false).length;
+			changeCount = zTree.getChangeCheckedNodes().length;
+
+			var checkenode = zTree.getNodesByFilter(filterChecked, false);
+                console.log(checkenode);
+                var interviewees =[];
+                for(var i=0;i<checkenode.length;i++)
+                {
+                   interviewees[i]=checkenode[i].name;
+                }
+             console.log(interviewees);
+             var deadline = $("#date-input").val();
+             console.log(deadline);
+             var anonymous;
+             console.log($("#anonymous"));
+             console.log($("#anonymous").prop('checked'));
+             if($("#anonymous").prop('checked')==true)
+             anonymous='True';
+             else
+             anonymous='False';
+             console.log("anonymous");
+             console.log(anonymous);
+             console.log("anonymous");
+            $.each($("input[name='article_tag']:checked"), function(){article_tags.push($(this).val());});
+            $.ajax({
+                url: "{% url 'article:redit_article' article.id %}",
+                type: "POST",
+                data: {"title":title, "body":body, "column_id":column_id, "tags":JSON.stringify(article_tags), "survey":JSON.stringify(survey), "interviewees":JSON.stringify(interviewees), "deadline":deadline, "anonymous":anonymous},
+                success: function(e){
+                        if(e=="1"){
+                                  $("#publish_button").attr('disabled',true);
+                                  $("#publish_button").val("草稿保存成功");
+                                layer.msg("successful,草稿保存成功",{icon:1,time:2000,end : function(){location.href = "{% url 'article:article_list_draft' %}";}});
+
+                                }else if(e=="2"){
+                                    layer.msg("sorry，草稿保存失败",{icon:2,time:2000});
+                                    $("#publish_button").attr('disabled',false);
+                                  $("#publish_button").val("草稿保存失败");
+                                 }else{
+                                 $("#publish_button").attr('disabled',false);
+                                  $("#publish_button").val("草稿保存失败");
+                                    layer.msg("name need to input, it is can be empty.");
+                                  }
+
+                               },
+                 });
+             }
+
+</script>
+<script type="text/javascript" src="{% static 'editor/editormd.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/layer.js' %}"></script>
+<script type="text/javascript">
+    function add_column(num){
+        var index = layer.open({
+            type: 1,
+            skin: "layui-layer-rim",
+            area: ["400px", "200px"],
+            title: "添加栏目",
+            content: '<div class="text-center" style="margin-top:20px"><p>请输入栏目名称：</p><p>{{ column_form.column }}</p></div>',
+            btn: ['确认', '取消'],
+            yes: function(index, layero){
+             $(".layui-layer-btn0").attr('disabled',true);
+                          $(".layui-layer-btn0").css("pointer-events","none");
+                          $(".layui-layer-btn0").text("保存中...");
+                    column_name = $('#id_column').val();
+                    $.ajax({
+                        url: '{% url "article:article_column" %}',
+                        type: 'POST',
+                        data: {"column": column_name},
+                        success:function(e){
+                                if(num==1)
+                                {
+                                if(e!=2&&e!=3){
+                                    $(".layui-layer-btn0").attr("disabled",true);
+                                    $(".layui-layer-btn0").css("pointer-events","none");
+                                    layer.msg("添加成功");
+                                    var htmlcolumn = ' <option value="'+e["newcolumn_id"]+'">'+column_name+'</option>';
+                                    $("#which_column").append(htmlcolumn);
+                                    layer.close(index);
+                                    //parent.location.reload();
+                                } else if(e==2){$(".layui-layer-btn0").attr('disabled',false);
+                                     $(".layui-layer-btn0").css("pointer-events","auto");
+                                    $(".layui-layer-btn0").text("确认");
+                                    layer.msg("此栏目已经存在，请更换名称！");
+                                    }
+                                    else if(e==3) { $(".layui-layer-btn0").attr('disabled',false);
+                                    $(".layui-layer-btn0").css("pointer-events","auto");
+                                    $(".layui-layer-btn0").text("确认");layer.msg("栏目名不能为空！");}
+                                    else{layer.msg("Sorry!");}
+                                    }
+                                    else
+                                    {
+                                    $(".layui-layer-btn0").attr("disabled",true);
+                                    $(".layui-layer-btn0").css("pointer-events","none");
+                                    layer.msg("创建成功");
+                                    $("#nocolumn").remove();
+                                      html_nocolumn= ' <div class="col-md-5 text-left"><select id="which_column"><option value="'+e["newcolumn_id"]+'">'+column_name+'</option></select></div><div class="col-md-5 text-right"  ><button id="addcolumn" onclick="add_column(1)" class="btn  btn-success btn-xs">+栏目</button> </div>';
+                                    $("#columnselect").after(html_nocolumn);
+                                     layer.close(index);
+
+                                    }
+                             },
+                         });
+                   // alert(column_name);
+                   },
+            btn2: function(index, layero){
+                    layer.close(index);
+                    }
+           });
+       }
+</script>
+<script>
+     function add_tagnew(num){
+        var index = layer.open({
+            type: 1,
+            skin: "layui-layer-rim",
+            area: ["400px", "200px"],
+            title: "创建标签",
+            content: '<div class="text-center" style="margin-top:20px"><p>请输入标签名称：</p><p>{{ article_tag_form.tag }}</p></div>',
+            btn: ['确认', '取消'],
+            yes: function(index, layero){
+                            $(".layui-layer-btn0").attr('disabled',true);
+                          $(".layui-layer-btn0").css("pointer-events","none");
+                          $(".layui-layer-btn0").text("保存中...");
+                    tag_name = $('#id_tag').val();
+                    $.ajax({
+                        url: '{% url "article:article_tag" %}',
+                        type: 'POST',
+                        data: {"tag": tag_name},
+                        success:function(e){
+                               if(num == 1)
+                               {
+                                if(e!=2&&e!=3&&e!=4){
+                                $(".layui-layer-btn0").attr("disabled",true);
+                                    $(".layui-layer-btn0").css("pointer-events","none");
+                                    layer.msg("添加成功");
+                                    var new_id = e["new_tag_id"];
+                                   var taghtml = '<label class="checkbox-inline"><input class="tagcheckbox" type="checkbox" id="'+new_id +'" name="article_tag" value="'+tag_name+'">'+tag_name+'</label>';
+                                   var id_tag_last = e["tag_last_id"];
+                                   $("#"+id_tag_last).parent().after(taghtml);
+                                   layer.close(index);
+                                   // parent.location.reload();
+                                } else if(e==2){
+                                 $(".layui-layer-btn0").attr('disabled',false);
+                                     $(".layui-layer-btn0").css("pointer-events","auto");
+                                    $(".layui-layer-btn0").text("确认");
+                                    layer.msg("此标签已经存在，请更换名称！");
+                                    }
+                                    else if(e==3) {$(".layui-layer-btn0").attr('disabled',false);
+                                     $(".layui-layer-btn0").css("pointer-events","auto");
+                                    $(".layui-layer-btn0").text("确认");layer.msg("标签名不能为空！");}
+                                    else {layer.msg("抱歉，出错了");}
+                                    }
+                                    else
+                                    {
+                                    $(".layui-layer-btn0").attr("disabled",true);
+                                    $(".layui-layer-btn0").css("pointer-events","none");
+                                     layer.msg("创建成功");
+                                    $("#notag").remove();
+                                      html_notag= '<div class="col-md-5  text-left"><label class="checkbox-inline"><input class="tagcheckbox" type="checkbox" id="'+e["new_tag_id"]+'" name="article_tag" value="'+tag_name+'">'+tag_name+'</label></div><div class="col-md-5 text-right"  ><button id="addtag" onclick="add_tagnew(1)" class="btn  btn-success btn-xs">+标签</button> </div>';
+                                    $("#tagselect").after(html_notag);
+                                     layer.close(index);
+                                    }
+                             },
+                         });
+                   // alert(column_name);
+                   },
+            btn2: function(index, layero){
+                    layer.close(index);
+                    }
+           });
+       }
+</script>
+<script type="text/javascript">
+    var editor; //声明全局变量供使用
+    var index;
+    $(function() {
+             editor = editormd("editormd", {
+                width : "100%",
+                height :640,
+                placeholder : "此处开始编写您要发布的内容...",
+                imageUpload: true,
+                imageFormats : ["jpg", "jpeg", "gif", "png", "bmp", "webp"],
+                imageUploadURL : "{% url 'article:blog_img_upload' %}",
+                //onload: function(){
+                //      console.log('onload', this);
+                //          },
+                saveHTMLToTextarea : true,
+
+                emoji : true,
+                tex: true,
+                flowChart : true,
+               // syncScrolling : "single",
+                codeFold : true,
+                searchReplace: true,
+                htmlDecode: "style,script,iframe|on*",
+                taskList: true,
+                tocm: true,
+                flowChart: true,
+                sequenceDiagram: true,
+                path :  "{% static 'editor/lib/' %}",
+                {#editorTheme: "pastel-on-dark",#}
+                {#theme: "dark",#}
+                {#previewTheme: "dark",#}
+                 toolbarIcons : function() {
+                                // Or return editormd.toolbarModes[name]; // full, simple, mini
+                                // Using "||" set icons align right.
+                            return [  "undo", "redo", "|",
+            "bold", "del", "italic", "quote", "ucwords", "uppercase", "lowercase", "|",
+            "h1", "h2", "h3", "h4", "h5", "h6", "|",
+            "list-ul", "list-ol", "hr", "|",
+            "link", "reference-link", "image", "testIconVideoUpload","testIconFileUpload", "|","code", "preformatted-text", "code-block","testIconLatex", "table",  "|","datetime", "emoji", "html-entities", "pagebreak", "|",
+            "goto-line", "watch", "preview", "fullscreen", "clear", "search", "|",
+             "testIconSave","|","help", "info",]
+                    },
+                 toolbarIconsClass : {
+                                   // testIcon : "fa-gears" , // 指定一个FontAawsome的图标类
+                                    testIconVideoUpload : "fa-play-circle",
+                                    testIconFileUpload : "fa-file",
+                                    testIconSave : "fa-download",
+                                },
+                 toolbarIconTexts : {
+                            testIconLatex : "<span>&#931</span>",  // 如果没有图标，则可以这样直接插入内容，可以是字符串或HTML标签
+
+                        },
+
+                 toolbarHandlers : {
+                    /**
+                    * @param {Object}      cm         CodeMirror对象
+                    * @param {Object}      icon       图标按钮jQuery元素对象
+                    * @param {Object}      cursor     CodeMirror的光标对象，可获取光标所在行和位置
+                    * @param {String}      selection  编辑器选中的文本
+                    */
+                 testIcon : function(cm, icon, cursor, selection) {
+
+                                            //var cursor    = cm.getCursor();     //获取当前光标对象，同cursor参数
+                                         //var selection = cm.getSelection();  //获取当前选中的文本，同selection参数
+
+                                            // 替换选中文本，如果没有选中文本，则直接插入
+                                    cm.replaceSelection("[" + selection + ":testIcon]");
+
+                                        // 如果当前没有选中的文本，将光标移到要输入的位置
+                                    if(selection === "") {
+                                            cm.setCursor(cursor.line, cursor.ch + 1);
+                                                            }
+
+                                         // this == 当前editormd实例
+                                    console.log("testIcon =>", this, cm, icon, cursor, selection);
+                                        },
+
+                 testIcon2 : function(cm, icon, cursor, selection) {
+                            cm.replaceSelection("[" + selection + ":testIcon2](" + icon.html() + ")");
+                            console.log("testIcon2 =>", this, icon.html());
+                                                             },
+                 testIconVideoUpload : function(cm, icon, cursor, selection) {
+                         index = layer.open({
+                            type: 1,
+                            skin: "layui-layer-rim",
+                            area: ["400px", "200px"],
+                            title: "添加视频",
+                            content: '<div  style="margin-top:35px"><p style="margin-left:15px"><input type="button" class = "btn " value="上传视频" onclick="javascript:$(\'#id_video\').click();"/><input type="text" id = "id_fileName" style="margin-left:15px;width:260px;" readonly /><input name="videofile" type="file" style="display:none;"  id="id_video" accept=".mp4" onchange="javascript:$(\'#id_fileName\').val(this.files[0].name);" /></p></div>',
+                            btn: ['确认', '取消'],
+                            yes: function(index, layero){
+                                    var uploadUrl = "{% url 'article:blog_video_upload_drag' %}";
+                                    var files =  document.getElementById("id_video").files; // 这里获取到用户拖放的文件
+                                    console.log(uploadUrl);
+                                    console.log(files);
+                                    if(files[0].size<1024*1024*500)
+                                    ajaxUpload(uploadUrl, files, uploadCallback);
+                                     else
+                                    alert("上传视频不可以大于500Mb！");
+                                     },
+                            btn2: function(index, layero){
+                                    layer.close(index);
+                                        }
+                                });
+                               },
+                 testIconFileUpload : function(cm, icon, cursor, selection) {
+                         index = layer.open({
+                            type: 1,
+                            skin: "layui-layer-rim",
+                            area: ["400px", "200px"],
+                            title: "添加文件",
+                            content: '<div  style="margin-top:35px"><p style="margin-left:15px"><input type="button" class = "btn " value="上传文件" onclick="javascript:$(\'#id_attachfile\').click();"/><input type="text" id = "id_AttachfileName" style="margin-left:15px;width:260px;" readonly /><input name="attachfile" type="file" style="display:none;"  id="id_attachfile"  onchange="javascript:$(\'#id_AttachfileName\').val(this.files[0].name);" /></p></div>',
+                            btn: ['确认', '取消'],
+                            yes: function(index, layero){
+                                    var uploadUrl = "{% url 'article:blog_file_upload_drag' %}";
+                                    var files =  document.getElementById("id_attachfile").files; // 这里获取到用户拖放的文件
+                                    console.log(uploadUrl);
+                                    console.log(files);
+                                    if(files[0].size<1024*1024*1000)
+                                    ajaxUpload(uploadUrl, files, uploadCallback);
+                                    else
+                                    alert("上传文件不可以大于1Gb！");
+
+                                     },
+                            btn2: function(index, layero){
+                                    layer.close(index);
+                                        }
+                                });
+                               },
+                  testIconSave : function(cm, icon, cursor, selection) {
+                          var indexsave = layer.open({
+                            type: 1,
+                            skin: "layui-layer-rim",
+                            area: ["350px", "200px"],
+                            title: "导出文章",
+                            content: '<div style="margin-left:20px;margin-top:20px;"><button style="margin-left:20px;margin-top:20px;" id="get-html-btn" onclick="button_html()">保存为Html</button><button style="margin-left:20px;margin-top:20px;" id="get-md-btn" onclick="button_md()">保存为Markdown</button></div><script type="text/javascript">function button_html() {var name = document.getElementById("id_title").value; if(name=="")name = "article.html";else name = name+ ".html";exportRaw(name, editor.getHTML()); } function button_md() {var name = document.getElementById("id_title").value; if(name=="")name = "article.md";else name = name+ ".md"; exportRaw(name, editor.getMarkdown()); }function exportRaw(name, data) { var urlObject = window.URL || window.webkitURL || window; var export_blob = new Blob([data]);var save_link = document.createElementNS("http://www.w3.org/1999/xhtml", "a"); save_link.href = urlObject.createObjectURL(export_blob); save_link.download = name; fakeClick(save_link);}function fakeClick(obj) {var ev = document.createEvent("MouseEvents");ev.initMouseEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null); obj.dispatchEvent(ev);} </sc'+'ript>',
+                            btn: ['确认', '取消'],
+                            yes: function(index, layero){
+                                  layer.close(indexsave);
+
+                                     },
+                            btn2: function(index, layero){
+                                    layer.close(indexsave);
+                                        }
+                                });
+
+                                   },
+
+                  testIconLatex : function(cm, icon, cursor, selection) {
+                          var cont = '<div id="777"></div><div id="guppy1" style="margin-top:20px;margin-left:20px; width:300px;"></div> <script type="text/javascript">Guppy.use_osk(new GuppyOSK({"goto_tab":"arithmetic","attach":"focus"})); var g1 = new Guppy("guppy1");</sc'+'ript>';
+                          console.log(cont);
+                          index = layer.open({
+                            type: 1,
+                            skin: "layui-layer-rim",
+                            area: ["1600px", "800px"],
+                            title: "添加公式",
+                            content: cont,
+                            btn: ['确认', '取消'],
+                            yes: function(index, layero){
+                                       console.log("jieguo");
+                                      var type ='latex';
+
+                                                try{
+                                                    content = Guppy("guppy1").engine.get_content(type);
+                                                    console.log(content);
+                                                    content = "$$"+content+"$$";
+                                                     console.log(content);
+
+                                                    cm.replaceSelection(content);
+                                                    console.log(cm);
+                                                    cm.setCursor(cursor.line, cursor.ch + 2);
+                                                    }
+                                                catch(e)
+                                                { }
+
+                                      layer.close(index);
+                                     },
+                            btn2: function(index, layero){
+                                    layer.close(index);
+                                        }
+                                });
+                                },
+                        },
+
+                 lang : {
+                            toolbar : {
+                                //file : "上传文件",
+                                testIcon : "自定义按钮testIcon",  // 自定义按钮的提示文本，即title属性
+                                testIcon2 : "自定义按钮testIcon2",
+                                testIconFileUpload : "添加文件",
+                                testIconVideoUpload : "添加视频",
+                                testIconSave : "导出文章到本地",
+                                testIconLatex : "插入公式",
+                                undo : "撤销 (Ctrl+Z)"
+                                        }
+                        },
+
+                 onload : function(){
+                                        $("[type=\"file\"]").bind("change", function(){
+                                                            alert($(this).val());
+                                                            testEditor.cm.replaceSelection($(this).val());
+                                                            console.log($(this).val(), testEditor);
+                                                                                    });
+                                        var codeEditor = $(".CodeMirror-wrap")[0];
+                                        console.log('666');
+                                        codeEditor.ondragenter = function(e) {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            console.log("dragenter");
+                                                            return false;
+                                                                        };
+
+                                        codeEditor.ondragover = function(e) {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            console.log("dragover");
+                                                            return false;
+                                                                        };
+
+                                        codeEditor.ondrop = function(e) {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            console.log("drop");
+                                                            var files = e.dataTransfer.files // 这里获取到用户拖放的文件
+                                                            console.log(files[0]['name']);
+
+                                                            // 其中 ajaxUpload是Ajax上传文件的函数
+
+                                                            // uploadUrl是后端提供的上传地址, uploadCallback是上传后的回调函数，用于生成代码片段并插入编辑器
+                                                            if (files[0]['name'].endsWith(".jpg")||files[0]['name'].endsWith(".jpeg")||files[0]['name'].endsWith(".gif")||files[0]['name'].endsWith(".png")||files[0]['name'].endsWith(".bmp")||files[0]['name'].endsWith(".jwebp")) {
+
+                                                               var uploadUrl = "{% url 'article:blog_img_upload_drag' %}";
+                                                               ajaxUpload(uploadUrl, files, uploadCallback);
+                                                            }
+                                                            else if (files[0]['name'].endsWith(".mp4")||files[0]['name'].endsWith(".MP4"))
+                                                            {   var uploadUrl = "{% url 'article:blog_video_upload_drag' %}";
+                                                                if(files[0].size<1024*1024*500)
+                                                                ajaxUpload(uploadUrl, files, uploadCallback);
+                                                                else
+                                                                alert('上传视频不可以大于500Mb!');
+                                                            }
+                                                            else
+                                                            {    var uploadUrl = "{% url 'article:blog_file_upload_drag' %}";
+                                                               if(files[0].size<1024*1024*1000)
+                                                                  ajaxUpload(uploadUrl, files, uploadCallback);
+                                                                 else
+                                                                alert('上传文件不可以大于1Gb!');
+                                                            }
+
+                                                            return false;
+                                                                        };
+                                    }
+
+                    });
+
+               //editor.config("syncScrolling", true);
+             });
+
+</script>
+
+<script type="text/javascript">
+function ajaxUpload(uploadUrl, files, callback) {
+                        console.log("文件开始上传:");
+                        var formData = new FormData();
+                        if (files[0]['name'].endsWith(".jpg")||files[0]['name'].endsWith(".jpeg")||files[0]['name'].endsWith(".gif")||files[0]['name'].endsWith(".png")||files[0]['name'].endsWith(".bmp")||files[0]['name'].endsWith(".jwebp")) {
+                            formData.append('img', files[0]);
+                        }
+                        else if (files[0]['name'].endsWith(".mp4")||files[0]['name'].endsWith(".MP4"))
+                        {formData.append('video', files[0]);}
+                        else
+                        {formData.append('file', files[0]);}
+                        formData.append('files', '222');
+                        console.log(files[0]);
+                        console.log(formData[0]);
+                        console.log(formData[1]);
+                        console.log(uploadUrl);
+                        // 可以添加其他需要传给后端的参数
+                        $.ajax({
+                                url: uploadUrl,
+                                type: 'POST',
+                                data: formData,
+                                processData: false, // must, important
+                                contentType: false, // must, important
+                                dataType: 'json',
+                                beforeSend: function(){ layer.close(index); showLoading(true);},
+                                xhr: function() {
+                                        var xhr = new XMLHttpRequest();
+                                          //使用XMLHttpRequest.upload监听上传过程，注册progress事件，打印回调函数中的event事件
+                                          var ot = new Date().getTime();   //设置上传开始时间
+                                          var oloaded = 0;//设置上传开始时，以上传的文件大小为0
+                                        xhr.upload.addEventListener('progress', function (e) {
+
+                                          //loaded代表上传了多少
+                                          //total代表总数为多少
+                                        var progressRate = (e.loaded / e.total) * 100 ;
+                                        var totalsize = e.total/1024/1024;
+                                         $("#total-size").html( "总大小:  "+ totalsize.toFixed(3)+ "M");
+
+                                        var nt = new Date().getTime();//获取当前时间
+                                        var pertime = (nt-ot)/1000; //计算出上次调用该方法时到现在的时间差，单位为s
+                                        ot = new Date().getTime(); //重新赋值时间，用于下次计算
+                                        var perload = e.loaded - oloaded; //计算该分段上传的文件大小，单位b
+                                        oloaded = e.loaded;//重新赋值已上传文件大小，用以下次计算
+                                        //上传速度计算
+                                        var speed = perload/pertime;//单位b/s
+                                         var units = 'b/s';//单位名称
+                                          if(speed/1024>1){
+                                                 speed = speed/1024;
+                                                 units = 'k/s';
+                                                     }
+                                          if(speed/1024>1){
+                                                 speed = speed/1024;
+                                                  units = 'M/s';
+                                                       }
+                                         $("#upload-ratio").html("上传速率:   "+speed.toFixed(2)+ units);
+
+                                         $("#upload-progress").attr("style", "width:"+progressRate+ '%');
+                                         if(progressRate<99.9)
+                                          {
+                                            $("#upload-percent").html("上传百分比:   "+progressRate.toFixed(2)+ '%');
+                                          }
+                                         else
+                                         {
+                                            $("#upload-percent").html("文件块合并中...");
+                                          }
+                                          }
+                                          );
+
+                                     return xhr;
+                                        },
+
+                                success: function(data) {
+                                                console.log("result:", data);
+                                                uploadCallback(data);
+                                                    layer.close(index);
+                                                 console.log(index);
+                                                        },
+                                complete: function(data) {
+                                            showLoading(false);
+                                                        }
+                             });
+
+                        return false;
+                    }
+</script>
+
+<script type="text/javascript">
+function uploadCallback(data) {
+                var url = data.url; // 依据后端返回的数据格式而定
+                var link = url;
+                if (!url) return false;
+                var alt = "";
+                var cm = editor; // editor是用editormd函数创建的编辑器对象，这里假设editor是全局变量
+                var cursor = cm.getCursor(); // 获取光标位置
+                if (url.endsWith(".mp4")) { // 如果是是视频
+                    var videoHtml = '<video class="video-js text-center" controlslist="nodownload"  controls preload="auto" width="100%" poster="" data-setup=\'{"aspectRatio":"16:9"}\'>\
+                                    <source src="' + url + '" type=\'video/mp4\' > </video>';
+                    videoHtml = "\n" + videoHtml + "\n"; // videoHtml是生成的HTML视频代码片段
+                    cm.replaceSelection(videoHtml); // 插入到编辑器中
+                    cm.setCursor(cursor.line, cursor.ch + 2);
+                    return;
+                            }
+                else if (url.endsWith(".jpg")||url.endsWith(".jpeg")||url.endsWith(".gif")||url.endsWith(".png")||url.endsWith(".bmp")||url.endsWith(".jwebp")) {
+                    // 以下是对图片上传结果的处理，引用原image-upload插件的代码
+                    var altAttr = (alt !== "") ? " \"" + alt + "\"" : "";
+                    if (link === "" || link === "http://")
+                        {
+                            cm.replaceSelection("![" + alt + "](" + url + altAttr + ")");
+                        }
+                    else
+                        {
+                            cm.replaceSelection("[![" + alt + "](" + url + altAttr + ")](" + link + altAttr + ")");
+                        }
+
+                    if (alt === "") {
+                            cm.setCursor(cursor.line, cursor.ch + 2);
+                                    }
+                        }
+                else{
+                     var index = url.lastIndexOf("\/");
+                     str = url.substring(index+1,url.length);
+                     var fileHtml =  '<a href="' + url +'">' + str +'<\/a>';
+                     cm.replaceSelection(fileHtml);
+                     cm.setCursor(cursor.line, cursor.ch + 2);
+                     }
+
+                 }
+</script>
+ <style type="text/css">
+
+        #foo {
+            position: fixed;
+            left: 0;
+            top: 0;
+            _position: absolute;
+            width: 100%;
+            background: #000;
+            opacity: 0.5;
+            filter: alpha(opacity=50);
+            z-index: 999;
+            display: none;
+        }
+
+
+</style>
+<script type="text/javascript">
+ var opts = {
+            lines: 13, // The number of lines to draw
+            length: 20, // The length of each line
+            width: 10, // The line thickness
+            radius: 30, // The radius of the inner circle
+            corners: 1, // Corner roundness (0..1)
+            rotate: 15, // The rotation offset
+            color: '#fff', // #rgb or #rrggbb
+            speed: 1, // Rounds per second
+            trail: 60, // Afterglow percentage
+            shadow: true, // Whether to render a shadow
+            hwaccel: false, // Whether to use hardware acceleration
+            className: 'spinner', // The CSS class to assign to the spinner
+            zIndex: 2e9, // The z-index (defaults to 2000000000)
+            top: '50%', // Top position relative to parent in px
+            left: '50%' // Left position relative to parent in px
+        };
+        var spinner = new Spinner(opts);
+        //显示与隐藏加载动画
+        function showLoading(result) {
+            var spinContainer = document.getElementById("foo");
+            if (result) {
+                var target = $(spinContainer).get(0);
+                spinner.spin(target);
+                spinContainer.style.height = document.documentElement.clientHeight + "px";
+
+                $(spinContainer).show();
+            } else {
+                spinner.spin();
+                $(spinContainer).hide();
+            }
+        }
+</script>
+<script>
+		function on_progress(evt) {       //看这个函数之前先看upload函数。这个函数可以接收一个evt(event)对象(细节自行查询progress)，
+		                                 //他有3个属性lengthComputable，loaded，total，第一个属性是个bool类型的，代表是否支持，
+		                                 //第二个代表当前上传的大小，第三个为总的大小，由此便可以计算出实时上传的百分比
+			if(evt.lengthComputable) {
+				var ele = document.getElementById('2');
+				var percent = Math.round((evt.loaded) * 100 / evt.total);
+				ele.style.width = percent + '%';
+				document.getElementById('3').innerHTML = percent + '%';
+			}
+		}
+		function upload() {
+			var xhr = new XMLHttpRequest();
+			var file = document.getElementById('file').files[0];   //取得文件数据，而.file对象只是文件信息
+            console.log(file);
+			var form = new FormData();   //FormData是HTML5为实现序列化表单而提供的类，更多细节可自行查询
+            form.append('file',file);   //这里为序列化表单对象form添加一个元素，即file
+			xhr.upload.addEventListener('progress',on_progress,false);     //xhr对象含有一个upload对象，它有一个progress事件，在文件上传过程中会被不断触发，我们为这个事件对应一个处理函数，每当事件触发就会调用这个函数，于是便可利用这个函数来修改当前进度，更多细节可自行查询
+			xhr.open('POST','http://127.0.0.1/load/upload/',true);  //请将url改成上传url
+            xhr.setRequestHeader('X-CSRFTOKEN','{{ request.COOKIES.csrftoken }}');   //此处为Django要求，可无视，或者换成相应后台所要求的CSRF防护，不是django用户请去掉
+			xhr.send(form);   //发送表单
+		}
+	</script>
+
+<script>
+
+     function add_survey(){
+      var num_question=$("#survey").children().length;
+        var index = layer.open({
+            type: 1,
+            skin: "layui-layer-rim",
+            area: ["1200px", "260px"],
+            title: "添加问卷/投票",
+            content: '<div class="text-center" style="margin-top:20px"><div style="float:left;display:inline">  <fieldset class="module aligned "> <div style="float:left;display:inline" class="form-row field-text">\
+                <div><div style="float:left;display:inline;margin-left:8px"><label  for="id_text">问题:</label></div> <div style="float:left;display:inline;margin-left:8px"><textarea id="question_text" name="text" cols="40" rows="5" class="vLargeTextField" required="" placeholder="（例子）爱一个人需要理由吗？"  id="id_text"></textarea></div></div> </div>\
+        <div style="float:left;display:inline;margin-left:8px" class="form-row field-required"> <div class="checkbox-row">\
+                        <input type="checkbox" name="required" id="question_require"><label class="vCheckboxLabel" for="id_required">是否必填</label></div></div> <div style="float:left;display:inline" class="form-row field-survey">\
+        <div style="float:left;display:inline;margin-left:8px" class="form-row field-question_type"><div style="float:left;display:inline"><label class="required" for="id_question_type">问题类型:</label><select  name="question_type" id="question_type">\
+ <option value="radio" selected="">单选按钮</option><option value="select-multiple">多选框</option><option value="select">单选下拉列表</option><option value="integer">整数</option><option value="real">实数</option> <option value="text" >文本</option></select></div></div>\
+        <div style="float:left;display:inline" class="form-row field-choices"><div style="margin-left:8px"><div style="float:left;display:inline"><label for="id_choices" >问题选项:</label></div><div style="float:left;display:inline;margin-left:8px"><textarea name="choices" cols="40" rows="5" id="question_choices" class="vLargeTextField" placeholder="需要,不需要"  id="id_choices"></textarea></div></div> </div></fieldset></div></div><div  style="clear:both"></div><div class="help text-center">提示: 如果问题类型为单选按钮、单选下拉列表或多选框，请提供用英文逗号分隔的问题选项！</div>',
+            btn: ['添加', '取消'],
+            yes: function(index, layero){
+                    text = $("#question_text").val();
+                    require = document.getElementById("question_require").checked;
+                    type= $("#question_type").val();
+                    choices = $("#question_choices").val();
+                     var str ="";
+                     console.log(type);
+                    num_question++;
+                    if(type=='radio')
+                    {
+                        var result= choices.split(",");
+                         str = '<div class="form-field-body" style="margin-top:6px" name="radio"><ul>';
+                         for(var i=0;i<result.length;i++)
+                         {
+                           str=str+'<li><label><input style="margin-left:15px" name="question_'+num_question+'" type="radio" class="" value="'+result[i]+'">'+result[i]+'</label></li>';
+                          }
+                         str= str+'</ul></div>';
+                    }
+                    else if(type=='select-multiple')
+                      {
+                         var result= choices.split(",");
+                         str = '<div class="form-field-body" name="select-multiple"><ul>';
+                        for(var i=0;i<result.length;i++)
+                         {
+                          str=str+'<li><label><input  name="question_'+num_question+'" type="checkbox" class="" value="'+result[i]+'">'+result[i] +'</label></li>';
+                         }
+                         str= str+'</ul></div>';
+                         console.log(str);
+                      }
+                    else if(type=='select')
+                    {
+
+                        var result= choices.split(",");
+                        str = '<div class="form-field-body" name="select"><select class="" ><option value="" selected="selected">----请选择---</option>';
+                        for(var i=0;i<result.length;i++)
+                        {
+                          str=str+'<option value="'+result[i]+'">'+result[i]+'</option>';
+                         }
+                         str= str+'</select></div>';
+                    }
+                    else if(type=='integer')
+                    {
+                      str = '<div class="form-field-body"  name="integer"><input  placeholder="请输入整数"  type="text"  οnkeyup="inputnum(event)" onafterpaste="pastenum(event)" >';
+
+                     str= str+'</div>';
+                     }
+                     else if(type=='real')
+                     {  str = '<div class="form-field-body" name="real" ><input   placeholder="请输入实数" type="text"  οnkeyup="value=value.replace(/[^\-?\d.]/g,\'\')" onafterpaste="if(this.value.length==1){this.value=this.value.replace(/[^1-9]/g,\'0\')}else{this.value=this.value.replace(/\D/g,\'\')}" >';
+                        str= str+'</div>';}
+                    else
+                    {
+                        str = '<div class="form-field-body"  name="textarea"><textarea  rows="10" cols="40" placeholder="请输入文本" class="" ></textarea>';
+                        str= str+'</div>';
+                    }
+                     console.log(require==true);
+                     if(require==true)
+                     {
+                         var surveyhtml = '<li class="q-item" value="'+num_question+'" style="margin-top:20px"><div class="field-wrapper">'+'<span style="color:red"> * </span>'+'<label class="label-inline">'+text+'</label><span class="form-help-text"></span>'+
+						str;
+                     }
+                     else
+                     {
+                         var surveyhtml = '<li class="q-item" value="'+num_question+'" style="margin-top:20px"><div class="field-wrapper"><label class="label-inline">'+text+'</label><span class="form-help-text"></span>'+
+						 str;
+						}
+					surveyhtml = surveyhtml+'<div class="" style="float:left;display:inline;margin-top:10px;margin-right:8px"><button id="editsurvey" onclick="edit_survey(this)" class="btn  btn-info btn-xs">修改</button> </div><div class="" style="float:left;display:inline;margin-top:10px;margin-right:8px" ><button id="insertsurvey" onclick="insert_survey(this)" class="btn  btn-success btn-xs">插入</button> </div><div class="" style="margin-top:10px" ><button id="deletesurvey" onclick="delete_survey(this)" class="btn  btn-danger btn-xs">删除</button> </div>';
+                    surveyhtml = surveyhtml +'<hr/>'+'</li>';
+
+                 $("#survey").append(surveyhtml);
+                 layer.close(index);
+                   },
+            btn2: function(index, layero){
+                    layer.close(index);
+                    }
+           });
+       }
+</script>
+<script>
+      var num_question=0;
+      function questions(List){
+                    console.log(List);
+                    var num = List.length;
+                  for(var i =0;i<num;i++)
+                  {
+                  console.log("88888888888");
+                    console.log(num);
+                    text = List[i][0];
+                    require = List[i][3];
+                    type= List[i][1];
+                    choices = List[i][2];
+                    var str ="";
+                    console.log(type);
+                    num_question++;
+                    if(type=='radio')
+                    {
+                        var result= choices.split(",");
+                         str = '<div class="form-field-body" style="margin-top:6px" name="radio"><ul>';
+                         for(var i=0;i<result.length;i++)
+                         {
+                           str=str+'<li><label><input style="margin-left:15px" name="question_'+num_question+'" type="radio" class="" value="'+result[i]+'">'+result[i]+'</label></li>';
+                          }
+                         str= str+'</ul></div>';
+                    }
+                    else if(type=='select-multiple')
+                      {
+                         var result= choices.split(",");
+                         str = '<div class="form-field-body" name="select-multiple"><ul>';
+                        for(var i=0;i<result.length;i++)
+                         {
+                          str=str+'<li><label><input  name="question_'+num_question+'" type="checkbox" class="" value="'+result[i]+'">'+result[i] +'</label></li>';
+                         }
+                         str= str+'</ul></div>';
+                         console.log(str);
+                      }
+                    else if(type=='select')
+                    {
+
+                        var result= choices.split(",");
+                        str = '<div class="form-field-body" name="select"><select class="" ><option value="" selected="selected">----请选择---</option>';
+                        for(var i=0;i<result.length;i++)
+                        {
+                          str=str+'<option value="'+result[i]+'">'+result[i]+'</option>';
+                         }
+                         str= str+'</select></div>';
+                    }
+                    else if(type=='integer')
+                    {
+                      str = '<div class="form-field-body"  name="integer"><input  placeholder="请输入整数"  type="text"  οnkeyup="inputnum(event)" onafterpaste="pastenum(event)" >';
+
+                     str= str+'</div>';
+                     }
+                     else if(type=='real')
+                     {  str = '<div class="form-field-body" name="real" ><input   placeholder="请输入实数" type="text"  οnkeyup="value=value.replace(/[^\-?\d.]/g,\'\')" onafterpaste="if(this.value.length==1){this.value=this.value.replace(/[^1-9]/g,\'0\')}else{this.value=this.value.replace(/\D/g,\'\')}" >';
+                        str= str+'</div>';}
+                    else
+                    {
+                        str = '<div class="form-field-body"  name="textarea"><textarea  rows="10" cols="40" placeholder="请输入文本" class="" ></textarea>';
+                        str= str+'</div>';
+                    }
+                     console.log(require==true);
+                     if(require==true)
+                     {
+                         var surveyhtml = '<li class="q-item" value="'+num_question+'" style="margin-top:20px"><div class="field-wrapper">'+'<span style="color:red"> * </span>'+'<label class="label-inline">'+text+'</label><span class="form-help-text"></span>'+
+						str;
+                     }
+                     else
+                     {
+                         var surveyhtml = '<li class="q-item" value="'+num_question+'" style="margin-top:20px"><div class="field-wrapper"><label class="label-inline">'+text+'</label><span class="form-help-text"></span>'+
+						 str;
+						}
+					surveyhtml = surveyhtml+'<div class="" style="float:left;display:inline;margin-top:10px;margin-right:8px"><button id="editsurvey" onclick="edit_survey(this)" class="btn  btn-info btn-xs">修改</button> </div><div class="" style="float:left;display:inline;margin-top:10px;margin-right:8px" ><button id="insertsurvey" onclick="insert_survey(this)" class="btn  btn-success btn-xs">插入</button> </div><div class="" style="margin-top:10px" ><button id="deletesurvey" onclick="delete_survey(this)" class="btn  btn-danger btn-xs">删除</button> </div>';
+                    surveyhtml = surveyhtml +'<hr/>'+'</li>';
+                 $("#survey").append(surveyhtml);
+                    }
+                   }
+</script>
+<script>
+     var num_question=0;
+     function edit_survey(the){
+      console.log(the);
+      var name = the.parentNode.parentNode.parentNode;
+      console.log(name);
+      var num_this =name.value;
+      console.log(num_this);
+      var lili =name.childNodes[0].childNodes;
+      console.log(lili);
+      var question ;
+       var required ;
+       var choicestext='';
+       var questiontype;
+      if(lili.length==7)
+      {
+      question = lili[0].innerHTML;
+
+      required = false;
+      console.log( lili[2]);
+      questiontype =  lili[2].getAttribute("name");
+      console.log(questiontype);
+      var choices= lili[2].childNodes[0].childNodes;
+
+
+     if(questiontype=="radio" || questiontype=="select-multiple")
+     {
+       for(var i =0;i<choices.length;i++)
+        {
+        if(i==choices.length-1)
+        choicestext =choicestext+ choices[i].childNodes[0].childNodes[0].value;
+        else
+        choicestext =choicestext+ choices[i].childNodes[0].childNodes[0].value+',';
+        }
+     }
+       else if(questiontype=="select")
+       {
+       for(var i =0;i<choices.length;i++)
+        {
+        if(i==0) ;
+        else if(i==choices.length-1)
+        choicestext =choicestext+ choices[i].value;
+        else
+        choicestext =choicestext+ choices[i].value+',';
+        }
+       }
+       else
+       {
+         choicestext = "";
+
+       }
+     }
+     else
+     {
+     console.log(lili);
+      question   = lili[1].innerHTML;
+       console.log(question);
+      required = true;
+       console.log(required);
+       questiontype =  lili[3].getAttribute("name");
+        console.log(questiontype);
+        var choices= lili[3].childNodes[0].childNodes;
+        console.log(choices);
+             if(questiontype=="radio" || questiontype=="select-multiple")
+         {
+            for(var i =0;i<choices.length;i++)
+          {
+            if(i==choices.length-1)
+            choicestext =choicestext+ choices[i].childNodes[0].childNodes[0].value;
+            else
+            choicestext =choicestext+ choices[i].childNodes[0].childNodes[0].value+',';
+          }
+          }
+
+        else if(questiontype=="select")
+       {
+       for(var i =0;i<choices.length;i++)
+        {
+        if(i==0) ;
+        else if(i==choices.length-1)
+        choicestext =choicestext+ choices[i].value;
+        else
+        choicestext =choicestext+ choices[i].value+',';
+        }
+       }
+         else
+       {
+         choicestext = "";
+
+       }
+       }
+       console.log(choicestext);
+
+       var htmlall = '<div class="text-center" style="margin-top:20px"><div style="float:left;display:inline">  <fieldset class="module aligned "> <div style="float:left;display:inline" class="form-row field-text">\
+                <div><div style="float:left;display:inline;margin-left:8px"><label  for="id_text">问题:</label></div> <div style="float:left;display:inline;margin-left:8px"><textarea id="question_text" name="text" cols="40" rows="5" class="vLargeTextField" required=""  id="id_text">'+question+'</textarea></div></div> </div>\
+        <div style="float:left;display:inline;margin-left:8px" class="form-row field-required"> <div class="checkbox-row">';
+        if(required == false)
+                htmlall =htmlall+        '<input type="checkbox" name="required" id="question_require"><label class="vCheckboxLabel" for="id_required">是否必填</label></div></div> <div style="float:left;display:inline" class="form-row field-survey">';
+                else
+                htmlall =htmlall+        '<input type="checkbox" checked name="required" id="question_require"><label class="vCheckboxLabel" for="id_required">是否必填</label></div></div> <div style="float:left;display:inline" class="form-row field-survey">';
+
+         htmlall =htmlall+  '<div style="float:left;display:inline;margin-left:8px" class="form-row field-question_type"><div style="float:left;display:inline"><label class="required" for="id_question_type">问题类型:</label><select  name="question_type" id="question_type">';
+         if(questiontype=="radio")
+            htmlall =htmlall+ '<option value="radio" selected>单选按钮</option><option value="select-multiple">多选框</option><option value="select">单选下拉列表</option><option value="integer">整数</option><option value="real">实数</option> <option value="text" >文本</option></select></div></div>\
+            <div style="float:left;display:inline" class="form-row field-choices"><div style="margin-left:8px"><div style="float:left;display:inline"><label for="id_choices" >问题选项:</label></div><div style="float:left;display:inline;margin-left:8px"><textarea name="choices" cols="40" rows="5" id="question_choices" class="vLargeTextField"  id="id_choices">'+choicestext+'</textarea></div></div> </div></fieldset></div></div><div  style="clear:both"></div><div class="help text-center">提示: 如果问题类型为单选按钮、单选下拉列表或多选框，请提供用英文逗号分隔的问题选项！</div>';
+        else if(questiontype=="select-multiple")
+         htmlall =htmlall+ '<option value="radio" >单选按钮</option><option value="select-multiple" selected>多选框</option><option value="select">单选下拉列表</option><option value="integer">整数</option><option value="real">实数</option> <option value="text" >文本</option></select></div></div>\
+        <div style="float:left;display:inline" class="form-row field-choices"><div style="margin-left:8px"><div style="float:left;display:inline"><label for="id_choices" >问题选项:</label></div><div style="float:left;display:inline;margin-left:8px"><textarea name="choices" cols="40" rows="5" id="question_choices" class="vLargeTextField"  id="id_choices">'+choicestext+'</textarea></div></div> </div></fieldset></div></div><div  style="clear:both"></div><div class="help text-center">提示: 如果问题类型为单选按钮、单选下拉列表或多选框，请提供用英文逗号分隔的问题选项！</div>';
+        else if(questiontype=="select")
+         htmlall =htmlall+ '<option value="radio" >单选按钮</option><option value="select-multiple" >多选框</option><option value="select" selected>单选下拉列表</option><option value="integer">整数</option><option value="real">实数</option> <option value="text" >文本</option></select></div></div>\
+        <div style="float:left;display:inline" class="form-row field-choices"><div style="margin-left:8px"><div style="float:left;display:inline"><label for="id_choices" >问题选项:</label></div><div style="float:left;display:inline;margin-left:8px"><textarea name="choices" cols="40" rows="5" id="question_choices" class="vLargeTextField"  id="id_choices">'+choicestext+'</textarea></div></div> </div></fieldset></div></div><div  style="clear:both"></div><div class="help text-center">提示: 如果问题类型为单选按钮、单选下拉列表或多选框，请提供用英文逗号分隔的问题选项！</div>';
+       else if(questiontype=="integer")
+         htmlall =htmlall+ '<option value="radio" >单选按钮</option><option value="select-multiple" >多选框</option><option value="select" >单选下拉列表</option><option value="integer" selected>整数</option><option value="real">实数</option> <option value="text" >文本</option></select></div></div>\
+        <div style="float:left;display:inline" class="form-row field-choices"><div style="margin-left:8px"><div style="float:left;display:inline"><label for="id_choices" >问题选项:</label></div><div style="float:left;display:inline;margin-left:8px"><textarea name="choices" cols="40" rows="5" id="question_choices" class="vLargeTextField"  id="id_choices">'+choicestext+'</textarea></div></div> </div></fieldset></div></div><div  style="clear:both"></div><div class="help text-center">提示: 如果问题类型为单选按钮、单选下拉列表或多选框，请提供用英文逗号分隔的问题选项！</div>';
+        else if(questiontype=="real")
+         htmlall =htmlall+ '<option value="radio" >单选按钮</option><option value="select-multiple" >多选框</option><option value="select" >单选下拉列表</option><option value="integer" >整数</option><option value="real" selected>实数</option> <option value="text" >文本</option></select></div></div>\
+        <div style="float:left;display:inline" class="form-row field-choices"><div style="margin-left:8px"><div style="float:left;display:inline"><label for="id_choices" >问题选项:</label></div><div style="float:left;display:inline;margin-left:8px"><textarea name="choices" cols="40" rows="5" id="question_choices" class="vLargeTextField"  id="id_choices">'+choicestext+'</textarea></div></div> </div></fieldset></div></div><div  style="clear:both"></div><div class="help text-center">提示: 如果问题类型为单选按钮、单选下拉列表或多选框，请提供用英文逗号分隔的问题选项！</div>';
+        else if(questiontype=="textarea")
+         htmlall =htmlall+ '<option value="radio" >单选按钮</option><option value="select-multiple" >多选框</option><option value="select" >单选下拉列表</option><option value="integer" >整数</option><option value="real" >实数</option> <option value="text" selected>文本</option></select></div></div>\
+        <div style="float:left;display:inline" class="form-row field-choices"><div style="margin-left:8px"><div style="float:left;display:inline"><label for="id_choices" >问题选项:</label></div><div style="float:left;display:inline;margin-left:8px"><textarea name="choices" cols="40" rows="5" id="question_choices" class="vLargeTextField"  id="id_choices">'+choicestext+'</textarea></div></div> </div></fieldset></div></div><div  style="clear:both"></div><div class="help text-center">提示: 如果问题类型为单选按钮、单选下拉列表或多选框，请提供用英文逗号分隔的问题选项！</div>';
+
+
+        var index = layer.open({
+            type: 1,
+            skin: "layui-layer-rim",
+            area: ["1200px", "260px"],
+            title: "修改",
+            content:htmlall,
+            btn: ['修改', '取消'],
+            yes: function(index, layero){
+                    text = $("#question_text").val();
+                    require = document.getElementById("question_require").checked;
+                    type= $("#question_type").val();
+                    choices = $("#question_choices").val();
+                    var str ="";
+                    console.log(type);
+                    num_question=num_this;
+                    if(type=='radio')
+                    {
+                    var result= choices.split(",");
+                     str = '<div class="form-field-body" style="margin-top:6px" name="radio"><ul>';
+                    for(var i=0;i<result.length;i++)
+                     {
+                        str=str+'<li><label ><input style="margin-left:15px" name="question_'+num_question+'" type="radio" class=" " value="'+result[i]+'">'+result[i]+'</label></li>';
+                     }
+                     str= str+'</ul></div>';
+                    }
+                    else if(type=='select-multiple')
+                      {
+                      var result= choices.split(",");
+                       str = '<div class="form-field-body" name="select-multiple"><ul>';
+                       for(var i=0;i<result.length;i++)
+                       {
+                          str=str+'<li><label ><input  name="question_'+num_question+'" type="checkbox" class="" value="'+result[i]+'">'+result[i] +'</label></li>';
+                        }
+                        str= str+'</ul></div>';
+                        console.log(str);
+                      }
+                    else if(type=='select')
+                    {
+
+                    var result= choices.split(",");
+                    str = '<div class="form-field-body" name="select"><select  class="" ><option value="" selected="selected">----请选择---</option>';
+                    for(var i=0;i<result.length;i++)
+                     {
+                        str=str+'<option value="'+result[i]+'">'+result[i]+'</option>';
+                     }
+                     str= str+'</select></div>';
+                    }
+                    else if(type=='integer')
+                    {str = '<div class="form-field-body"  name="integer"><input  placeholder="请输入整数"  type="text"  οnkeyup="inputnum(event)" onafterpaste="pastenum(event)" >';
+
+                     str= str+'</div>';}
+                     else if(type=='real')
+                    {str = '<div class="form-field-body" name="real" ><input   placeholder="请输入实数" type="text"  οnkeyup="value=value.replace(/[^\-?\d.]/g,\'\')" onafterpaste="if(this.value.length==1){this.value=this.value.replace(/[^1-9]/g,\'0\')}else{this.value=this.value.replace(/\D/g,\'\')}" >';
+                     str= str+'</div>';}
+                    else
+                    {
+                     str = '<div class="form-field-body"  name="textarea"><textarea  rows="10" cols="40" placeholder="请输入文本" class="" ></textarea>';
+                     str= str+'</div>';
+                    }
+                     console.log(require==true);
+                     if(require==true)
+                     {
+                         var surveyhtml = '<li class="q-item" value="'+num_question+'" style="margin-top:20px"><div class="field-wrapper">'+'<span style="color:red"> * </span>'+'<label class="label-inline">'+text+'</label><span class="form-help-text"></span>'+
+						str;
+                     }
+                     else
+                     {
+                         var surveyhtml = '<li class="q-item" value="'+num_question+'" style="margin-top:20px"><div class="field-wrapper"><label class="label-inline">'+text+'</label><span class="form-help-text"></span>'+
+						str;
+						}
+
+                        surveyhtml = surveyhtml+'<div class="" style="float:left;display:inline;margin-top:10px;margin-right:8px"><button id="editsurvey" onclick="edit_survey(this)" class="btn  btn-info btn-xs">修改</button> </div><div class="" style="float:left;display:inline;margin-top:10px;margin-right:8px" ><button id="insertsurvey" onclick="insert_survey(this)" class="btn  btn-success btn-xs">插入</button> </div><div class="" style="margin-top:10px" ><button id="deletesurvey" onclick="delete_survey(this)" class="btn  btn-danger btn-xs">删除</button> </div>';
+                    surveyhtml = surveyhtml +'<hr/>'+'</li>';
+
+
+                  var del = $("#survey").children();
+                     console.log(  $("#survey").children());
+                    let tempNode = document.createElement('div');
+                    tempNode.innerHTML = surveyhtml;
+                   sss = tempNode.firstChild;
+                    console.log(sss);
+                 console.log( del[num_this-1]);
+                  if(num_this!=del.length)
+                  {
+                    del[num_this-1].remove();
+                    del = $("#survey").children();
+
+                    del[num_this-1].before(sss);
+                    }
+                  else
+                  {
+                  if(del.length!=1)
+                  {
+                    del[num_this-1].remove();
+                    del = $("#survey").children();
+                    del[num_this-2].after(sss);
+                    }
+                    else
+                    {
+                      del[num_this-1].remove();
+                      $("#survey").append(sss);
+                    }
+                 }
+
+                 layer.close(index);
+                   },
+            btn2: function(index, layero){
+                    layer.close(index);
+                    }
+           });
+       }
+</script>
+
+<script>
+
+     function insert_survey(the){
+       console.log(the);
+       var thenode = the.parentNode.parentNode.parentNode;
+      console.log(thenode);
+      var num_this =thenode.value;
+      console.log(num_this);
+      var lili =thenode.childNodes[0].childNodes;
+      console.log(lili);
+
+       var htmlall = '<div class="text-center" style="margin-top:20px"><div style="float:left;display:inline">  <fieldset class="module aligned "> <div style="float:left;display:inline" class="form-row field-text">\
+                <div><div style="float:left;display:inline;margin-left:8px"><label  for="id_text">问题:</label></div> <div style="float:left;display:inline;margin-left:8px"><textarea id="question_text" name="text" cols="40" rows="5" class="vLargeTextField" required="" placeholder="（例子）爱一个人需要理由吗？"  id="id_text"></textarea></div></div> </div>\
+        <div style="float:left;display:inline;margin-left:8px" class="form-row field-required"> <div class="checkbox-row">\
+                        <input type="checkbox" name="required" id="question_require"><label class="vCheckboxLabel" for="id_required">是否必填</label></div></div> <div style="float:left;display:inline" class="form-row field-survey">\
+        <div style="float:left;display:inline;margin-left:8px" class="form-row field-question_type"><div style="float:left;display:inline"><label class="required" for="id_question_type">问题类型:</label><select  name="question_type" id="question_type">\
+ <option value="radio" selected="">单选按钮</option><option value="select-multiple">多选框</option><option value="select">单选下拉列表</option><option value="integer">整数</option><option value="real">实数</option> <option value="text" >文本</option></select></div></div>\
+        <div style="float:left;display:inline" class="form-row field-choices"><div style="margin-left:8px"><div style="float:left;display:inline"><label for="id_choices" >问题选项:</label></div><div style="float:left;display:inline;margin-left:8px"><textarea name="choices" cols="40" rows="5" id="question_choices" class="vLargeTextField" placeholder="需要,不需要"  id="id_choices"></textarea></div></div> </div></fieldset></div></div><div  style="clear:both"></div><div class="help text-center">提示: 如果问题类型为单选按钮、单选下拉列表或多选框，请提供用英文逗号分隔的问题选项！</div>';
+
+
+        var index = layer.open({
+            type: 1,
+            skin: "layui-layer-rim",
+            area: ["1200px", "260px"],
+            title: "插入",
+            content:htmlall,
+            btn: ['插入', '取消'],
+            yes: function(index, layero){
+
+
+                    text = $("#question_text").val();
+                    require = document.getElementById("question_require").checked;
+
+                    type= $("#question_type").val();
+                    choices = $("#question_choices").val();
+                     var str ="";
+                     console.log(type);
+                    var  num_question=num_this+1;
+
+                    if(type=='radio')
+                    {
+                    var result= choices.split(",");
+                     str = '<div class="form-field-body" style="margin-top:6px" name="radio"><ul>';
+                    for(var i=0;i<result.length;i++)
+                     {
+                        str=str+'<li><label ><input style="margin-left:15px" name="question_'+num_question+'"  type="radio" class=" " value="'+result[i]+'">'+result[i]+'</label></li>';
+                     }
+                     str= str+'</ul></div>';
+                    }
+                    else if(type=='select-multiple')
+                      {
+                      var result= choices.split(",");
+                       str = '<div class="form-field-body" name="select-multiple"><ul>';
+                       for(var i=0;i<result.length;i++)
+                       {
+                          str=str+'<li><label ><input name="question_'+num_question+'"   type="checkbox" class="" value="'+result[i]+'">'+result[i] +'</label></li>';
+                        }
+                        str= str+'</ul></div>';
+                        console.log(str);
+                      }
+                    else if(type=='select')
+                    {
+
+                    var result= choices.split(",");
+                    str = '<div class="form-field-body" name="select"><select   class="" ><option value="" selected="selected">----请选择---</option>';
+                    for(var i=0;i<result.length;i++)
+                     {
+                        str=str+'<option value="'+result[i]+'">'+result[i]+'</option>';
+                     }
+                     str= str+'</select></div>';
+                    }
+                    else if(type=='integer')
+                    {str = '<div class="form-field-body"  name="integer"><input  placeholder="请输入整数"  type="text"  οnkeyup="inputnum(event)" onafterpaste="pastenum(event)" >';
+
+                     str= str+'</div>';}
+                     else if(type=='real')
+                    {str = '<div class="form-field-body" name="real" ><input    placeholder="请输入实数" type="text"  οnkeyup="value=value.replace(/[^\-?\d.]/g,\'\')" onafterpaste="if(this.value.length==1){this.value=this.value.replace(/[^1-9]/g,\'0\')}else{this.value=this.value.replace(/\D/g,\'\')}" >';
+                     str= str+'</div>';}
+                    else
+                    {
+                     str = '<div class="form-field-body"  name="textarea"><textarea  rows="10" cols="40" placeholder="请输入文本" class="" ></textarea>';
+                     str= str+'</div>';
+                    }
+                     console.log(require==true);
+                     if(require==true)
+                     {
+                         var surveyhtml = '<li class="q-item" value="'+num_question+'" style="margin-top:20px"><div class="field-wrapper">'+'<span style="color:red"> * </span>'+'<label class="label-inline">'+text+'</label><span class="form-help-text"></span>'+
+						str;
+                     }
+                     else
+                     {
+                         var surveyhtml = '<li class="q-item" value="'+num_question+'" style="margin-top:20px"><div class="field-wrapper"><label class="label-inline">'+text+'</label><span class="form-help-text"></span>'+
+						str;
+						}
+
+                        surveyhtml = surveyhtml+'<div class="" style="float:left;display:inline;margin-top:10px;margin-right:8px"><button id="editsurvey" onclick="edit_survey(this)" class="btn  btn-info btn-xs">修改</button> </div><div class="" style="float:left;display:inline;margin-top:10px;margin-right:8px" ><button id="insertsurvey" onclick="insert_survey(this)" class="btn  btn-success btn-xs">插入</button> </div><div class="" style="margin-top:10px" ><button id="deletesurvey" onclick="delete_survey(this)" class="btn  btn-danger btn-xs">删除</button> </div>';
+                    surveyhtml = surveyhtml +'<hr/>'+'</li>';
+
+                  var del = $("#survey").children();
+                     console.log(  $("#survey").children());
+
+                    let tempNode = document.createElement('div');
+                    tempNode.innerHTML = surveyhtml;
+                   sss = tempNode.firstChild;
+                    console.log(sss);
+
+
+                       for(var i=0;i<del.length-num_this;i++)
+                      {
+                         console.log(num_question+i-1);
+                         console.log( del[num_question+i-1]);
+                          del[num_question+i-1].value=num_question+i+1;
+                          console.log( del[num_question+i-1]);
+
+                      }
+
+                        del[num_this-1].after(sss);
+
+                 layer.close(index);
+                   },
+            btn2: function(index, layero){
+                    layer.close(index);
+                    }
+           });
+       }
+</script>
+<script>
+
+     function delete_survey(the){
+       console.log(the);
+       var thenode = the.parentNode.parentNode.parentNode;
+      console.log(thenode);
+      var num_this =thenode.value;
+      console.log(num_this);
+      var lili =thenode.childNodes[0].childNodes;
+      console.log(lili);
+
+
+        var index = layer.open({
+            type: 1,
+            skin: "layui-layer-rim",
+            area: ["260px", "150px"],
+            title: "删除",
+            content:'<p class="text-center">确定删除该节点？</p>',
+            btn: ['删除', '取消'],
+            yes: function(index, layero){
+
+                         var del = $("#survey").children();
+                     console.log(  $("#survey").children());
+                       for(var i=0;i<del.length-num_this;i++)
+                      {
+                         console.log(num_this+i);
+                         console.log( del[num_this+i]);
+                          del[num_this+i].value=num_this+i;
+                          console.log( del[num_this+i]);
+
+                      }
+
+                        del[num_this-1].remove();
+
+                 layer.close(index);
+                   },
+            btn2: function(index, layero){
+                    layer.close(index);
+                    }
+           });
+       }
+</script>
+<script>
+    function inputnum(event)
+    {
+
+  //  console.log();
+     // if(this.value.length==1){this.value=this.value.replace(/[^1-9]/g,'')}
+     // else{this.value=this.value.replace(/\D/g,'')}
+    }
+    function pastenum(event)
+    {
+    if(this.value.length==1){this.value=this.value.replace(/[^1-9]/g,'0')}else{this.value=this.value.replace(/\D/g,'')}
+    }
+</script>
+
+<script>
+
+//调用日期插件
+$("#date-input").myDatePicker({
+    'startDate':'2010-12-25 23:28:20',
+    'endDate':'2100-01-01 18:45:20',
+    //指定父元素，不指定默认为body
+    parent:$("#date-input").parent(),
+    //定位方式是否用fixed
+    positionFixed: true,
+     view: 6 //默认为2  0-4五个数字分别表示 年、月、日、周、季度 五个视图
+});
+
+
+</script>
+
+<script>
+//使用$(window).load(function() {}）在网页中所有元素(包括页面中图片,css文件等所有关联文件)完全加载到浏览器后才执行
+//$(window).load()只能在JavaScript代码中出现一次，如果有多个$(window).load()，那么只有最后一个$(window).load()里面的函数或者代码才会执行，之前的$(window).load()都将被覆盖
+//使用$(document).ready(function() {}) 加载并解析完整个html文档，dom树已经建立起来了,然后执行此函数,并不代表页面的所
+//有数据已经全部加载完成，一些大的图片有会在建立DOM树之后很长一段时间才行加载完成
+//此处使得代码块能够自动拥有横向滚动条
+$(document).ready(function(){ //$("code").attr("style","white-space: nowrap");
+        $("code").css("white-space", "nowrap");
+        var ll = $("code").attr('style');
+        console.log(ll);
+        //$("pre").attr("style","overflow-x: auto");
+        $("pre").css("overflow-x", "auto");
+        console.log($("pre").attr("style"));
+         var List = {{ questions|safe }};
+          questions(List);
+          console.log($('.accordion-body'));
+<!--         $('.accordion-body').collapse('show');-->
+            $('.collapse').collapse();
+        });
+
+</script>
+
+<!--<script type="text/javascript">-->
+<!--    function redit_article(){-->
+<!--            var title = $("#id_title").val();-->
+<!--            var column_id = $("#which_column").val();-->
+<!--            var body = $("#id_body").val();-->
+<!--            var article_tags = [];-->
+<!--            $.each($("input[name='article_tag']:checked"), function(){article_tags.push($(this).val());});-->
+<!--            $.ajax({-->
+<!--                url: "{% url 'article:redit_article' article.id %}",-->
+<!--                type: "POST",-->
+<!--                data: {"title":title, "body":body, "column_id":column_id, "tags":JSON.stringify(article_tags)},-->
+<!--                success: function(e){-->
+<!--                        if(e=="1"){-->
+<!--                                layer.msg("successful");-->
+<!--                                location.href = "{% url 'article:article_list' %}";-->
+<!--                                }else{-->
+<!--                                    layer.msg("sorry");-->
+<!--                                 }-->
+<!--                               },-->
+<!--                 });-->
+<!--             }-->
+<!--</script>-->
+<!--<script type="text/javascript" src="{% static 'editor/editormd.min.js' %}"></script>-->
+<!--<script type="text/javascript">-->
+<!--    $(function() {-->
+<!--            var editor = editormd("editormd", {-->
+<!--                width : "100%",-->
+<!--                height :640,-->
+<!--                imageUpload: true,-->
+<!--                imageFormats : ["jpg", "jpeg", "gif", "png", "bmp", "webp"],-->
+<!--                imageUploadURL : "{% url 'article:blog_img_upload' %}",-->
+<!--                onload: function(){-->
+<!--                      console.log('onload', this);-->
+<!--                          },-->
+<!--                saveHTMLToTextarea : true,-->
+<!--                emoji : true,-->
+<!--                tex: true,-->
+<!--                flowChart : true,-->
+<!--                syncScrolling : "single",-->
+<!--                codeFold: true,-->
+<!--                searchReplace: true,-->
+<!--                htmlDecode: "style,script,iframe|on*",-->
+<!--                taskList: true,-->
+<!--                tocm: true,-->
+<!--                flowChart: true,-->
+<!--                sequenceDiagram: true,-->
+<!--                path :  "{% static 'editor/lib/' %}",-->
+<!--                {#editorTheme: "pastel-on-dark",#}-->
+<!--                {#theme: "dark",#}-->
+<!--                {#previewTheme: "dark",#}-->
+<!--               });-->
+<!--             });-->
+<!--</script>-->
+<!--<script>-->
+<!--     function add_tagnew(){-->
+<!--        var index = layer.open({-->
+<!--            type: 1,-->
+<!--            skin: "layui-layer-rim",-->
+<!--            area: ["400px", "200px"],-->
+<!--            title: "创建标签",-->
+<!--            content: '<div class="text-center" style="margin-top:20px"><p>请输入标签名称：</p><p>{{ article_tag_form.tag }}</p></div>',-->
+<!--            btn: ['确认', '取消'],-->
+<!--            yes: function(index, layero){-->
+<!--                    tag_name = $('#id_tag').val();-->
+<!--                    $.ajax({-->
+<!--                        url: '{% url "article:article_tag" %}',-->
+<!--                        type: 'POST',-->
+<!--                        data: {"tag": tag_name},-->
+<!--                        success:function(e){-->
+<!--                                if(e=="1"){-->
+<!--                                    layer.msg("添加成功");-->
+<!--                                    parent.location.reload();-->
+<!--                                } else if(e=="2"){-->
+<!--                                    layer.msg("此标签已经存在，请更换名称！");-->
+<!--                                    }-->
+<!--                                    else if(e=="3") {layer.msg("标签名不能为空！");}-->
+<!--                                    else {layer.msg(e);}-->
+<!--                             },-->
+<!--                         });-->
+<!--                   // alert(column_name);-->
+<!--                   },-->
+<!--            btn2: function(index, layero){-->
+<!--                    layer.close(index);-->
+<!--                    }-->
+<!--           });-->
+<!--       }-->
+<!--</script>-->
+{% endblock %}

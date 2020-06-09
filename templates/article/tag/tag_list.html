@@ -1,0 +1,138 @@
+{% extends "article/base.html" %}
+{% load staticfiles %}
+{% block title %}文章标签{% endblock %}
+{% block content %}
+<div>
+    <h4>我的文章标签</h4>
+
+<p class="text-right"><button id="addtagnew" onclick="add_tagnew()" class="btn btn-primary">创建标签</button> </p>
+
+
+    <table class="table table-hover">
+        <tr>
+            <td>序号</td>
+            <td>文章标签</td>
+            <td>操作</td>
+        </tr>
+        {% for article_tag in article_tags %}
+        <tr id="{{forloop.counter}}">
+            <td>{{forloop.counter}}</td>
+            <td><a href="{% url 'article:tag_filter' article_tag.tag %}"  >{{article_tag.tag}}</a></td>
+             <td><a name="edit" href="javascript:" onclick="edit_tag(this, {{article_tag.id }})"><span class="glyphicon glyphicon-pencil" data-toggle="tooltip" data-placement="top" title="编辑标签"></span> </a>
+           <a name="delete" href="javascript:" onclick="del_tag(this, {{article_tag.id}})"><span class="glyphicon glyphicon-trash" style="margin-left:20px;" data-toggle="tooltip" data-placement="top" title="删除标签"></span> </a> </td>
+        </tr>
+        {% empty %}
+        <p>您还没有文章标签，请创建标签。</p>
+        {% endfor %}
+    </table>
+</div>
+<script type="text/javascript" src="{% static 'js/jquery.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/layer.js' %}"></script>
+<script>
+     function add_tagnew(){
+        var index = layer.open({
+            type: 1,
+            skin: "layui-layer-rim",
+            area: ["400px", "200px"],
+            title: "创建标签",
+            content: '<div class="text-center" style="margin-top:20px"><p>请输入标签名称：</p><p>{{ article_tag_form.tag }}</p></div>',
+            btn: ['确认', '取消'],
+            yes: function(index, layero){
+               $(".layui-layer-btn0").attr('disabled',true);
+                          $(".layui-layer-btn0").css("pointer-events","none");
+                          $(".layui-layer-btn0").text("保存中...");
+                    tag_name = $('#id_tag').val();
+                    $.ajax({
+                        url: '{% url "article:article_tag" %}',
+                        type: 'POST',
+                        data: {"tag": tag_name},
+                        success:function(e){
+                                if(e=="4"){
+                                 layer.msg(e);
+                                } else if(e=="2"){
+                                  $(".layui-layer-btn0").attr('disabled',false);
+                                     $(".layui-layer-btn0").css("pointer-events","auto");
+                                    $(".layui-layer-btn0").text("确认");
+                                    layer.msg("此标签已经存在，请更换名称！");
+                                    }
+                                    else if(e=="3") {
+                                      $(".layui-layer-btn0").attr('disabled',false);
+                                     $(".layui-layer-btn0").css("pointer-events","auto");
+                                    $(".layui-layer-btn0").text("确认");
+                                    layer.msg("标签名不能为空！");}
+                                    else {
+                                     $(".layui-layer-btn0").attr("disabled",true);
+                                    $(".layui-layer-btn0").css("pointer-events","none");
+                                    layer.msg("添加成功!");
+                                    parent.location.reload();}
+                             },
+                         });
+                   // alert(column_name);
+                   },
+            btn2: function(index, layero){
+                    layer.close(index);
+                    }
+           });
+       }
+</script>
+<script>
+    function edit_tag(the,article_tag_id){
+        var name = $(the).parents("tr").children("td").eq(1).text();
+        console.log(name);
+        console.log($(the).parents("tr").children("td"));
+        var index = layer.open({
+                type: 1,
+                skin: "layui-layer-rim",
+                area: ["400px", "200px"],
+                title: "编辑栏目",
+                content: '<div class="text-center" style="margin-top:20px"><p>请编辑标签名称</p><p><input type="text" id="new_name" value="'+name+'"></p></div>',
+                btn: ['确认', '取消'],
+                yes: function(index, layero){
+                        new_name = $("#new_name").val();
+                        $.ajax({
+                            url: "{% url 'article:rename_article_tag' %}",
+                            type: "POST",
+                            data: {"tag_id": article_tag_id, "tag_name": new_name},
+                            success: function(e){
+                                        if(e=="1"){
+                                            layer.msg("编辑成功");
+                                            parent.location.reload();
+                                            }
+                                            else{
+                                            layer.msg("修改失败")
+                                            }
+                                        },
+                             });
+                     },
+                 });
+             }
+</script>
+<script type="text/javascript">
+    function del_tag(the, tag_id){
+            var article_tag = $(the).parents("tr").children("td").eq(1).text();
+            layer.open({
+                    type: 1,
+                    skin: "layui-layer-rim",
+                    area: ["400px", "200px"],
+                    title: "删除文章标签",
+                    content: '<div class="text-center" style="margin-top:20px"><p>是否确定删除文章标签《'+article_tag+'》</p></div>',
+                    btn: ['确定', '取消'],
+                    yes: function(){
+                                $.ajax({
+                                        url: '{% url "article:del_article_tag" %}',
+                                        type: "POST",
+                                        data: {"tag_id": tag_id},
+                                        success: function(e){
+                                                if(e=="1"){
+                                                        parent.location.reload();
+                                                        layer.msg("该标签已经被删除");
+                                                        }else{
+                                                        layer.msg("删除失败。");
+                                                        }
+                                                    },
+                                       })
+                                 },
+                     });
+             }
+</script>
+{% endblock %}

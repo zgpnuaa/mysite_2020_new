@@ -1,0 +1,928 @@
+{% extends "base.html" %}
+{% load article_tags %}
+{% load staticfiles %}
+{% block title %}文章详情{% endblock %}
+{% block content %}
+{% with total_likes=article.users_like.count users_like=article.users_like.all %}
+
+
+<link rel="stylesheet" href="{% static 'editor/css/style.css' %} ">
+<link rel="stylesheet" href="{% static 'editor/css/editormd.css' %}">
+<!--<link rel="stylesheet" type="text/css" href='{% static "css/bootstrap.css" %}'>-->
+<link href="{% static 'css/fontawesome-free-5.8.1-web/css/all.min.css' %}" rel="stylesheet">
+<link href="{% static 'Hover-master/css/hover-min.css' %}" rel="stylesheet">
+<div class="container">
+    <div class="col-md-9" style="border-left:1px solid 	#D3D3D3;border-right:1px solid 	#D3D3D3;border-top:1px solid 	#D3D3D3;border-bottom:1px solid 	#D3D3D3">
+        <div>
+            <header>
+                <h1 class="{{article.id}}" id="articletitle">{{article.title }}</h1>
+                  <p class="text-muted"><span style="margin-left:0px"><i style="margin-right:8px" class="fas fa-clock">{{article.created}}</i><i style="margin-left:8px;margin-right:8px" class="fas fa-thumbs-up"></i>{{total_likes}}</span> <span style="margin-left: 20px"><i style="margin-right:8px;" class="far fa-eye"></i>{{total_views}}</span> </p>
+
+                <p><span style="margin-right:10px"><strong>作者：</strong></span>  <a href="{% url 'article:author_articles' article.author.username %}">{{article.author.first_name}}</a></p>
+
+<!--                <p><span style="margin-right:10px"><strong>标签：</strong></span>{{article.article_tag.all | join:","}} </p>-->
+                 {% if  article.column %}
+                <p><span style="margin-right:10px"><strong>栏目：</strong></span> <span><a href="{% url 'article:column_filter' article.column.column %}" style="color:#F5DEB3;   ;border:solid;background-color:White;height:30px;" class="label label-default hvr-grow-shadow">{{article.column.column}}</a></span></p>
+        {% endif %}
+                 <p><span style="margin-right:10px"><strong>标签：</strong></span>
+                 {% for tag in article.article_tag.all %}
+              <span><a href="{% url 'article:tag_filter' tag.tag %}" style="color:Gray  ;background-color:GhostWhite ;height:16px;" class="badge badge-light hvr-float-shadow">{{tag.tag}}</a></span>
+         {% endfor %}
+                 </p>
+              <hr>
+            </header>
+            <link rel="stylesheet" href="{% static 'editor/css/editormd.preview.css' %}">
+            <div id="editormd-view" class="comments_content">
+                <textarea id="append-test" style="display:none;">{{article.body}}</textarea>
+            </div>
+            <div>
+                <ol id="survey"></ol>
+                {% if len_survey > 0  %}
+
+                  {% if expire %}
+                <div style="margin-left:18%">
+                <div>问卷/投票已结束！</div>
+
+                </div>
+                {% else %}
+
+                <div style="margin-left:18%">
+                <div>距离问卷/投票结束还有：</div>
+                    <div id="countdown" class="timeTo timeTo-white" style="font-family: Verdana, sans-serif;"></div>
+                </div>
+
+                {% if hasvoted%}
+                 {% else %}
+                {% if canvote %}
+                 <div style="margin-left:18%">
+                <div>您可以进行本文投票/问卷回答！</div>
+
+                </div>
+                  {% else %}
+                  <div style="margin-left:18%">
+                <div>您只能查看,不具有本文投票/问卷回答资格！</div>
+
+                </div>
+                  {% endif %}
+                {% endif %}
+                 {% endif %}
+                {% else %}
+                 {% endif %}
+            </div>
+
+            <div>
+                <p class="text-center">
+                    <a onclick="like_article({{article.id}},'like')" href="#"><span class="fas fa-thumbs-up" ></span> </a>
+                    <a onclick="like_article({{article.id}}, 'unlike')" href="#"><span style="margin-left: 15px;" class="fas fa-thumbs-down"></span> </a>
+                </p>
+            </div>
+            <div>
+                <p class="text-center"><strong>点赞本文的读者：</strong>
+                {% for user in article.users_like.all %}
+                   <span class="text-center"><a href="{% url 'article:author_articles' user.username %}">{{user.first_name}}</a> ,</span>
+                {% empty %}
+                    <p class="text-center">还没有人对此文章表态</p>
+                {% endfor %}
+                </p>
+            </div>
+            <hr>
+                <div id="w3" style="margin-bottom:60px" class="reply-form " action="." method="post">
+
+                    <div id="reply-content" class="form-group field-answer-reply-content required">
+                        <textarea style="display:none;" id="reply-content-body" ></textarea>
+                    </div>
+                    <div class="form-group" style="float:right">
+                        <button id="comment-submit" type="submit" class="btn btn-sm btn-primary" onclick="parent_comment()" >评论</button>
+                    </div>
+                </div>
+
+            <hr>
+            <p>共<b>{{num_comments}}</b>条评论 </p>
+            <hr>
+            <link rel="stylesheet" href="{% static 'editor/css/editormd.preview.css' %}">
+            {% tree comment_dic %}
+            {% include "paginator.html" %}
+            <hr>
+            <!--
+            <div>
+                <h3><span class="glyphicon glyphicon-bullhorn"></span>This article has {{article.comments.count}} comments. </h3>
+                {% for comment in article.comments.all %}
+                <div>
+                    <p><strong>{{ comment.commentator }}</strong> say:</p>
+                    <p style="margin-left:40px;">{{comment.body}}</p>
+                </div>
+                {% empty %}
+                <p>No Comment.</p>
+                {% endfor %}
+
+                <h3><span class="glyphicon glyphicon-send"></span>See the article, and comment, don't be silent. </h3>
+                <form action="." method="post" class="form-horizontal" role="form">{% csrf_token %}
+                    <div class="form-group">
+                        <label for="inputEmail3" class="col-md-2 control-label">Commentator:</label>
+                        <div class="col-md-10">
+                            {{ comment_form.commentator }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputEmail3" class="col-md-2 control-label">Comment:</label>
+                        <div class="col-md-10">
+                            {{ comment_form.body }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <p><input type="submit" name="" value="Publish Comment" class="btn btn-primary"> </p>
+                        </div>
+                    </div>
+
+                </form>
+
+            </div>
+            -->
+        </div>
+    </div>
+    <div class="col-md-3" >
+        <div id="sidebar" style="height:100%" class="sidebarclass">
+            <div class="none">
+         <hr>
+        <p class="text-center"><h4>最新文章</h4></p>
+        {% latest_articles 6 %}
+         <hr>
+        <p class="text-center"><h4>最受欢迎文章</h4></p>
+        <ul style="list-style:none">
+            {% for article_rank in most_viewed %}
+            <li>
+                <a href="{{article_rank.get_url_path}}" style="color:Orange ;">{{article_rank.title}}</a>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <hr>
+        <p class="text-center"><h4>评论最多文章</h4></p>
+        {% most_commented_articles as most_comments %}
+        <ul style="list-style:none">
+            {% for comment_article in most_comments %}
+            <li>
+                <a href="{{comment_article.get_url_path}}" style="color:Orange ;">{{comment_article.title}}</a>
+            </li>
+            {% endfor %}
+        </ul>
+        <hr>
+        <p class="text-center"><h4>推荐相似文章</h4></p>
+         <ul style="list-style:none">
+        {% for similar in similar_articles %}
+        <li><a href="{{similar.get_url_path}}" style="color:Orange ;">{{similar.title}}</a> </li>
+        {% empty %}
+        <li>Sorry, 没有相似的文章</li>
+        {% endfor %}
+         </ul>
+            </div>
+            <div class="text-center" id="to-top" style="display: none;margin-top:60px;" onclick="backtotop()">
+                <li id="button-to-top" class="fa fa-chevron-up" id="btn-top" title="回到顶部" style="background-color:lightgray;border-radius:50%;font-size:25px;"></li>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src='{% static "js/jquery.js" %}'></script>
+<script src='{% static "editor/lib/marked.min.js" %}'></script>
+<script src='{% static "editor/lib/prettify.min.js" %}'></script>
+<script src='{% static "editor/lib/raphael.min.js" %}'></script>
+<script src='{% static "editor/lib/underscore.min.js" %}'></script>
+<script src='{% static "editor/lib/sequence-diagram.min.js" %}'></script>
+<script src='{% static "editor/lib/flowchart.min.js" %}'></script>
+<script src='{% static "editor/lib/jquery.flowchart.min.js" %}'></script>
+<script src='{% static "editor/editormd.min.js" %}'></script>
+<script type="text/javascript" src="{% static 'js/layer.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/jquery.time-to.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/timeTo.css' %}">
+<!--<script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>-->
+<script type="text/javascript">
+
+        $(function(){
+            $("div.comments_content").each(
+               function(){
+                        var id = $(this).attr('id');
+                        var dic = {
+                        htmlDecode : "style,script,iframe",
+                        emoji : true,
+                        taskList : true,
+                        tex : true,
+                        flowChart : true,
+                        sequenceDiagram : true,
+                        codeFold: true,
+                            }
+                        //alert(id);
+                        editormd.markdownToHTML(id, dic);
+                           });
+              });
+
+    function like_article(id, action){
+        $.ajax({
+                url: "{% url 'article:like_article' %}",
+                type: "POST",
+                data: {"id":id, "action":action },
+                success: function(e){
+                        if(e=="1"){
+                        layer.msg("感谢点赞",{icon:6,time:1000,end: function(){window.location.reload();}});
+
+                        }else if(e=="2") {
+                        layer.msg("我会继续努力", {icon:5,time:1000,end: function(){ window.location.reload();}});
+
+                        }else {
+                        layer.msg("请先登陆", {icon:7,time:1000,end: function(){ location.href = "{% url 'article:like_article' %}"}});
+                        }
+                     },
+                });
+            }
+        function like_comment(id, action){
+        $.ajax({
+                url: "{% url 'article:like_comment' %}",
+                type: "POST",
+                data: {"comment_id":id, "action":action },
+                success: function(e){
+                        if(e=="1"){
+                        layer.msg("感谢点赞",{icon:6,time:1000,end: function(){window.location.reload();}});
+
+                        }else if(e=="2") {
+                        layer.msg("我会继续努力", {icon:5,time:1000,end: function(){ window.location.reload();}});
+
+                        }else {
+                        layer.msg("请先登陆", {icon:7,time:1000,end: function(){ location.href = "{% url 'article:like_article' %}"}});
+                        }
+                     },
+                });
+
+
+
+            }
+</script>
+
+<!--<script type="text/javascript" src='{% static "js/jquery.min.js" %}'></script>
+<script type="text/javascript" src='{% static "js/bootstrap.min.js" %}'></script>-->
+<script type="text/javascript" src="{% static 'js/json2.js' %}"></script>
+
+<script type="text/javascript">
+    $(function() {
+            var editor = editormd("reply-content", {
+                width : "100%",
+                height :140,
+                autoFocus : false,
+                placeholder : "说两句吧...",
+                imageUpload: true,
+                imageFormats : ["jpg", "jpeg", "gif", "png", "bmp", "webp"],
+                imageUploadURL : "{% url 'article:blog_img_upload' %}",
+                //onload: function(){console.log('onload', this); },
+                saveHTMLToTextarea : true,
+                emoji : true,
+                tex: true,
+                flowChart : true,
+                codeFold: true,
+                searchReplace: true,
+                htmlDecode: "style,script,iframe|on*",
+                taskList: true,
+                tocm: true,
+                flowChart: true,
+                sequenceDiagram: true,
+                path :  "{% static 'editor/lib/' %}",
+                toolbarIcons : function() {return ["bold","italic","quote","|","list-ul","list-ol","hr","|","link","code","code-block","table","|","clear","emoji"]},
+               });
+
+             });
+             function parent_comment(){
+               $("#comment-submit").attr('disabled',true);
+                          $("#comment-submit").css("pointer-events","none");
+                          $("#comment-submit").text("提交中...");
+              var content = $('#reply-content-body').val();
+              var cmdata = new Object();
+                     cmdata.comment_content = content;
+                     cmdata.comment_parent_id= "None";
+
+                   if(""==content){ alert("评论内容不能为空！");}
+                   else
+                    {
+
+                      $.ajax({
+
+                            url:  "{{article.get_url_path}}",
+                            type:"POST",
+                            dataType: "json",
+                            data: {"comment": JSON.stringify(cmdata)},
+                            success: function(data){
+                                  layer.msg(data.success);
+                                 if(data)
+                                { $("#comment-submit").attr('disabled',false);
+                          $("#comment-submit").css("pointer-events","auto");
+                          $("#comment-submit").text("评论");
+                                    layer.msg("successful,评论成功",{icon:1,time:200,end : function(){location.href = "{{article.get_url_path}}"}});
+                                }
+                               // $("#w3").html(data);
+                                },
+                            error: function(){$("#comment-submit").attr('disabled',false);
+                          $("#comment-submit").css("pointer-events","auto");
+                          $("#comment-submit").text("评论");alert("评论失败,请登录后评论！");},
+
+                            });
+                    }
+                    }
+</script>
+<script>
+    $("body").delegate(".reply","click",function(){
+
+         var divhtml = "";
+
+        if($(this).next().length>0){//判断出回复div已经存在,去除掉
+
+            $(this).next().remove();
+         }
+         else
+         {
+            //添加回复div
+            $(".children-reply-form").remove();//删除已存在的所有回复div
+            divhtml = '<div id="" class="children-reply-form " style="margin-top:20px;margin-bottom:65px;" action="." method="post"><div id="children-reply-content" class="form-group field-answer-reply-content required"><textarea id="children-reply-content-body" class="form-control" name="Answer[content]" aria-required="true"></textarea></div><div class="form-group" style="float:right; margin-bottom: 20px;"><button id="children-comment-submit" type="submit" class="btn btn-sm btn-primary">发送</button></div></div>';
+            };
+
+            $(this).after(divhtml);
+
+
+    $(function() {
+            var editor = editormd("children-reply-content", {
+                width : "100%",
+                height :140,
+                placeholder : "说两句吧...",
+                imageUpload: true,
+                imageFormats : ["jpg", "jpeg", "gif", "png", "bmp", "webp"],
+                imageUploadURL : "{% url 'article:blog_img_upload' %}",
+                onload: function(){console.log('onload', this); },
+                saveHTMLToTextarea : true,
+                emoji : true,
+                tex: true,
+                flowChart : true,
+                syncScrolling : "single",
+                codeFold : true,
+                searchReplace: true,
+                htmlDecode: "style,script,iframe|on*",
+                taskList: true,
+                tocm: true,
+                flowChart: true,
+                sequenceDiagram: true,
+                path :  "{% static 'editor/lib/' %}",
+                toolbarIcons : function() {return ["bold","italic","quote","|","list-ul","list-ol","hr","|","link","code","code-block","table","|","clear","emoji"]},
+               });
+             });
+
+         });
+
+          $('body').delegate('#children-comment-submit','click',function(){
+                    var content = $('#children-reply-content-body').val();
+                    var parent_id= $(this).parent().parent().parent().parent().attr("id");
+                    var cmdata = new Object();
+                     cmdata.comment_content = content;
+                     cmdata.comment_parent_id= parent_id;
+
+
+
+                    if(""==content){ alert("评论内容不能为空！");}
+                    else
+                    {
+                    console.log($("#children-comment-submit").text());
+                    $("#children-comment-submit").attr('disabled',true);
+                           $("#children-comment-submit").css("pointer-events","none");
+                           $("#children-comment-submit").text("发送中...");
+                      $.ajax({
+
+                            url: "{{article.get_url_path}}",
+                            type: "POST",
+                            dataType: "json",
+                            data: {"comment": JSON.stringify(cmdata)},
+                            success: function(data){
+                                 layer.msg(data.success);
+                                 if(data){
+                                    layer.msg("successful,回复成功",{icon:1,time:200,end : function(){location.href = "{{article.get_url_path}}"}});
+                                     }
+
+                                },
+                               error:function(e){
+                                    layer.msg("name need to input, it is can be empty.");
+                                },
+
+                            });
+
+                            $("#children-comment-submit").attr('disabled',false);
+                           $("#children-comment-submit").css("pointer-events","auto");
+                           $("#children-comment-submit").text("发送");
+                     }
+                    }
+                   );
+
+</script>
+<script>
+//使用$(window).load(function() {}）在网页中所有元素(包括页面中图片,css文件等所有关联文件)完全加载到浏览器后才执行
+//$(window).load()只能在JavaScript代码中出现一次，如果有多个$(window).load()，那么只有最后一个$(window).load()里面的函数或者代码才会执行，之前的$(window).load()都将被覆盖
+//使用$(document).ready(function() {}) 加载并解析完整个html文档，dom树已经建立起来了,然后执行此函数,并不代表页面的所
+//有数据已经全部加载完成，一些大的图片有会在建立DOM树之后很长一段时间才行加载完成
+//此处使得代码块能够自动拥有横向滚动条
+$(document).ready(function(){ //$("code").attr("style","white-space: nowrap");
+        $("code").css("white-space", "nowrap");
+        var ll = $("code").attr('style');
+        console.log(ll);
+        //$("pre").attr("style","overflow-x: auto");
+        $("pre").css("overflow-x", "auto");
+        console.log($("pre").attr("style"));
+         var List = {{ survey|safe }};
+          questions(List);
+          var Data = {{data|safe}};
+          if(Data.length>0)
+          {
+          console.log("Data:");
+          console.log(Data);
+          console.log("End");
+          progressbar(Data);
+          }
+          else
+          ;
+          $('#countdown').timeTo(new Date('{{ article.votedeadline | date:"Y-m-d H:i:s"}}'));
+        });
+
+//$(window).load(function() {
+//        //$("code").attr("style","white-space: nowrap");
+//        $("code").css("white-space", "nowrap");
+//        var ll = $("code").attr('style');
+//        console.log(ll);
+        //$("pre").attr("style","overflow-x: auto");
+//        $("pre").css("overflow-x", "auto");
+ //       console.log($("pre").attr("style"));
+//})
+</script>
+<style>
+.fixed{position:fixed; top:10px;}
+.fixed{_position:absolute; _top:expression((20+(noValue = document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop))+'px');}
+</style>
+
+<style>
+    @media screen and (max-width: 560px) { .sidebarclass{right:1.2%;} .none{display:none; }}
+</style>
+<style>
+    #to-top {position:absolute;right:3%;bottom:6%}
+</style>
+<script type="text/javascript">
+var rollSet = $('#sidebar');// 检查对象，#sidebar-tab是要随滚动条固定的ID，可根据需要更改
+var offset = rollSet.offset();
+$(window).scroll(function () {
+ // 检查对象的顶部是否在游览器可见的范围内
+ var scrollTop = $(window).scrollTop();
+ if(offset.top < scrollTop){
+  rollSet.addClass('fixed');
+  $('#to-top').css("display", "block");
+  $('#button-to-top').css("width", "100%");
+  $('#button-to-top').css("height", "100%");
+ }else{
+  rollSet.removeClass('fixed');
+  $('#to-top').css("display", "none");
+ }
+});
+</script>
+ <script>
+ function backtotop(){
+           scrollTo(0,0);
+           }
+ </script>
+<script>
+    function questions(List){
+                   console.log(List);
+                num_question=0;
+                if(List.length>0)
+                {
+                  for(let data of List)
+                  {
+                    text = data[0];
+                    type= data[1];
+                    choices = data[2];
+                    require = data[3];
+                     var str ="";
+                     console.log(data);
+                     console.log(type);
+                    num_question++;
+                    if(type=='radio')
+                    {
+                    var result= choices.split(",");
+                     str = '<div class="form-field-body" name="radio"><ul>';
+                    for(var i=0;i<result.length;i++)
+                     {
+                        str=str+'<li style="clear:both" ><label for="id_question_'+num_question+'"><input name="question_'+num_question+'" type="radio" class=" " value="'+result[i]+'" id="id_question_'+num_question+'">'+result[i]+'</label></li>';
+                     }
+                     str= str+'</ul></div>';
+                    }
+                    else if(type=='select-multiple')
+                      {
+                      var result= choices.split(",");
+                       str = '<div class="form-field-body" name="select-multiple"><ul>';
+                       for(var i=0;i<result.length;i++)
+                       {
+                          str=str+'<li style="clear:both"><label   for="id_question_'+num_question+'"><input  name="question_'+num_question+'" type="checkbox" class="" value="'+result[i]+'" id="id_question_'+num_question+'">'+result[i] +'</label></li>';
+                        }
+                        str= str+'</ul></div>';
+                        console.log(str);
+                      }
+                    else if(type=='select')
+                    {
+
+                    var result= choices.split(",");
+                    str = '<div class="form-field-body" name="select"><select  id="id_question_'+num_question+'" class="" name="question_'+num_question+'"><option value="" selected="selected">----请选择---</option>';
+                    for(var i=0;i<result.length;i++)
+                     {
+                        str=str+'<option value="'+result[i]+'">'+result[i]+'</option>';
+                     }
+                     str= str+'</div>';
+                    }
+                    else if(type=='integer')
+                    {str = '<div class="form-field-body"  name="integer"><input   name="question_'+num_question +'" id="id_question_'+num_question+'" placeholder="请输入整数"  type="text"  οnkeyup="inputnum(event)" onafterpaste="pastenum(event)" >';
+
+                     str= str+'</div>';}
+                     else if(type=='real')
+                    {str = '<div class="form-field-body" name="real" ><input   name="question_'+num_question +'" id="id_question_'+num_question+'" placeholder="请输入实数" type="text"  οnkeyup="value=value.replace(/[^\-?\d.]/g,\'\')" onafterpaste="if(this.value.length==1){this.value=this.value.replace(/[^1-9]/g,\'0\')}else{this.value=this.value.replace(/\D/g,\'\')}" >';
+
+                     str= str+'</div>';}
+                    else
+                    {
+                    str = '<div class="form-field-body"  name="textarea"><textarea  rows="10" name="question_'+num_question +'" id="id_question_'+num_question+'" cols="40" placeholder="请输入文本" class="" ></textarea>';
+
+                     str= str+'</div>';
+                    }
+                     console.log(require==true);
+                     if(require==true)
+                     {
+                         var surveyhtml = '<li class="q-item" value="'+num_question+'" style="margin-top:20px"><div class="field-wrapper">'+'<span style="color:red"> * </span>'+'<label class="label-inline">'+text+'</label><span class="form-help-text"></span>'+
+						str+'</li>';
+                     }
+                     else
+                     {
+                         var surveyhtml = '<li class="q-item" value="'+num_question+'" style="margin-top:20px"><div class="field-wrapper"><label class="label-inline">'+text+'</label><span class="form-help-text"></span>'+
+						str+'</li>';
+						}
+
+                 $("#survey").append(surveyhtml);
+                 var tijiao = ' <div class="text-center" id ="survey-submit-div"><button id="survey-submit" type="submit" class="btn btn-sm btn-primary" onclick="answer_submit()" >提交</button></div>';
+
+                 }
+                 $("#survey").after(tijiao);
+                 }
+                 }
+</script>
+<script>
+    function answer_submit()
+    {
+     $("#survey-submit").attr('disabled',true);
+                          $("#survey-submit").css("pointer-events","none");
+                          $("#survey-submit").text("提交中...");
+         var olArray = $("ol#survey li.q-item");
+         var answer =[];
+            for(var i=0;i<olArray.length;i++)
+            {
+                var li_survey=[];
+                console.log(olArray[i]);
+                console.log(olArray[i].childNodes[0].childNodes.length);
+                console.log();
+                var listitem;
+                if(olArray[i].childNodes[0].childNodes.length==3)
+                {
+                    require_question = false;
+                    text_question = olArray[i].childNodes[0].childNodes[0].innerHTML;
+                    listitem =olArray[i].childNodes[0].childNodes[2];
+                }
+                else
+                {    require_question = true;
+                     text_question = olArray[i].childNodes[0].childNodes[1].innerHTML;
+                     listitem =olArray[i].childNodes[0].childNodes[3];
+                }
+
+                console.log(text_question);
+                num_choices = listitem.childNodes[0].childNodes.length;
+                var choices = "";
+                console.log(num_choices);
+                type_question = listitem.getAttribute("name");
+                console.log(type_question);
+                if(type_question=="radio")
+                {
+                  for(var j=0;j<num_choices;j++)
+                  {
+                   if(listitem.childNodes[0].childNodes[j].childNodes[0].childNodes[0].checked==true)
+                   {
+                      console.log("+++++");
+                      console.log(listitem.childNodes[0].childNodes[j].childNodes[0].childNodes[0].value);
+                      console.log("+++++");
+                      answer.push(j);
+                   }
+                  }
+                }
+                else if(type_question=="select-multiple")
+                {
+                   var multi = [];
+                   for(var j=0;j<num_choices;j++)
+                  {
+                   if(listitem.childNodes[0].childNodes[j].childNodes[0].childNodes[0].checked==true)
+                   {
+                      console.log("+++++");
+                      console.log(listitem.childNodes[0].childNodes[j].childNodes[0].childNodes[0].value);
+                      console.log("+++++");
+                      multi.push(j);
+                   }
+                  }
+                  answer.push(multi);
+                }
+                else if(type_question=="select")
+                {
+                    console.log(listitem.childNodes[0]);
+                    var selectind = listitem.childNodes[0].selectedIndex;
+                    console.log(listitem.childNodes[0].selectedIndex);
+                    if(selectind>=1)
+                    answer.push(selectind-1);
+                    else
+                    alert("Please select a option!");
+                      console.log("+++++");
+                    console.log(listitem.childNodes[0].options[selectind].value);
+                      console.log("+++++");
+                }
+                else if(type_question=="integer")
+                {
+                    console.log("+++++");
+                    console.log(listitem.childNodes[0].value);
+                    console.log("+++++");
+                    answer.push(listitem.childNodes[0].value);
+                }
+                else if(type_question=="real")
+                {
+                    console.log("+++++");
+                   console.log(listitem.childNodes[0].value);
+                   console.log("+++++");
+                    answer.push(listitem.childNodes[0].value);
+                }
+                else if(type_question=="textarea")
+                {
+                console.log("+++++");
+                 console.log(listitem.childNodes[0].value);
+                 console.log("+++++");
+                  answer.push(listitem.childNodes[0].value);
+                }
+                article_id = $("#articletitle").attr("class");
+                var dic_answer = {"answer":answer,"article_id":article_id};
+
+            }
+
+             console.log(answer);
+            $.ajax({
+                url: "{% url 'article:answer_submit' %}",
+                type: "POST",
+                data: {"dic_answer":JSON.stringify(dic_answer)},
+                success: function(e){
+                        if(e!=1 && e!=2){
+                                layer.msg("successful,成功");
+                                dataastr= JSON.parse(e);
+                                console.log(dataastr);
+                                progressbar(dataastr);
+                                 $("#survey-submit").attr('disabled',false);
+                          $("#survey-submit").css("pointer-events","auto");
+                          $("#survey-submit").text("提交成功");
+                                }else if(e==2){
+                                    layer.msg("sorry，发布失败",{icon:2,time:2000});
+                                    $("#survey-submit").attr('disabled',false);
+                          $("#survey-submit").css("pointer-events","auto");
+                          $("#survey-submit").text("提交失败");
+                                 }else{
+                                    layer.msg("name need to input, it is can be empty.");
+                                     $("#survey-submit").attr('disabled',false);
+                          $("#survey-submit").css("pointer-events","auto");
+                          $("#survey-submit").text("提交失败");
+                                  }
+                               },
+                 });
+
+    }
+</script>
+<script>
+   function  progressbar(data)
+   {
+      var olArray = $("ol#survey li.q-item");
+         var answer =[];
+            for(var i=0;i<olArray.length;i++)
+            {
+                var li_survey=[];
+                 var listitem;
+                if(olArray[i].childNodes[0].childNodes.length==3)
+                {
+                    require_question = false;
+                    text_question = olArray[i].childNodes[0].childNodes[0].innerHTML;
+                    listitem =olArray[i].childNodes[0].childNodes[2];
+                }
+                else
+                {    require_question = true;
+                     text_question = olArray[i].childNodes[0].childNodes[1].innerHTML;
+                     listitem =olArray[i].childNodes[0].childNodes[3];
+                }
+                  type_question = listitem.getAttribute("name");
+                  num_choices = listitem.childNodes[0].childNodes.length;
+                  console.log(type_question);
+                if(type_question=="radio")
+                {
+                  for(var j=0;j<num_choices;j++)
+                  {
+                   var percent = data[i][1][j];
+                   var vote = data[i][0][j];
+
+                   var htmltext = document.createTextNode(vote+"票   ");
+                   var htmldiv = document.createElement("div");
+                   var htmltext2 = document.createTextNode(percent+"%");
+                   htmldiv.setAttribute("style", "margin-left:6%;float:left");
+                   htmldiv.appendChild(htmltext2);
+
+                   var htmldivch = document.createElement("div");
+                   if(j==data[i][2])
+                       {
+                          htmldivch.setAttribute("style", "margin-left:6%;float:left");
+                          var htmlch= document.createTextNode("(已选)");
+                          htmldivch.appendChild(htmlch);
+                          listitem.childNodes[0].childNodes[j].childNodes[0].childNodes[0].setAttribute('checked',true);
+                       }
+                   var htmlout = document.createElement("div");
+                   htmlout.setAttribute("style", "margin-right:8px");
+                   var htmltemp= document.createElement("div");
+                   htmltemp.setAttribute("class", "progress-bar");
+                   htmltemp.setAttribute("style", "width:"+percent+"%");
+                   htmltemp.appendChild(htmltext);
+                   var htmltemp0 = document.createElement("div");
+                   htmltemp0.setAttribute("class", "progress");
+                   htmltemp0.setAttribute("style", "width:70%;float:left");
+                   htmltemp0.appendChild(htmltemp);
+                   htmlout.appendChild(htmltemp0);
+                   console.log(listitem.childNodes[0].childNodes[j].childNodes[0]);
+                   listitem.childNodes[0].childNodes[j].appendChild(htmlout);
+                   listitem.childNodes[0].childNodes[j].appendChild(htmldiv);
+                   listitem.childNodes[0].childNodes[j].appendChild(htmldivch);
+                   var  htmlclear = document.createElement("div");
+                   htmlclear.setAttribute("style", "clear:both");
+                   listitem.childNodes[0].childNodes[j].appendChild(htmlclear);
+                   listitem.childNodes[0].childNodes[j].childNodes[0].childNodes[0].setAttribute("disabled",true);
+                  }
+                }
+                else if(type_question=="select-multiple")
+                {
+                   var multi = [];
+                   for(var j=0;j<num_choices;j++)
+                  {
+                      var percent = data[i][1][j];
+                      var vote = data[i][0][j];
+                      console.log(percent);
+                      var htmltext = document.createTextNode(vote+"票   ");
+                      var htmltext2 = document.createTextNode(percent+"%");
+                      var htmlout = document.createElement("div");
+                      var htmltemp = document.createElement("div");
+                      htmltemp.setAttribute("class", "progress-bar");
+                      htmltemp.setAttribute("style", "width:"+percent+"%");
+                      htmltemp.appendChild(htmltext);
+                      var htmltemp0 = document.createElement("div");
+                      htmltemp0.setAttribute("class", "progress");
+                      htmltemp0.setAttribute("style", "width:70%;float:left");
+                      htmltemp0.appendChild(htmltemp);
+                      htmlout.appendChild(htmltemp0);
+                      var htmlpercent =  document.createElement("div");
+                      htmlpercent.setAttribute("style", "margin-left:6%;float:left");
+                      htmlpercent.appendChild(htmltext2);
+                      htmlout.appendChild(htmlpercent);
+
+                     for (var k=0;  k< data[i][2].length;k++)
+                        {   var htmldivch = document.createElement("div");
+                            htmldivch.setAttribute("style", "margin-left:6%;float:left");
+                            if(j==data[i][2][k])
+                            {
+                             var htmlch= document.createTextNode("(已选)");
+                               htmldivch.appendChild(htmlch);
+                             htmlout.appendChild(htmldivch);
+                             listitem.childNodes[0].childNodes[j].childNodes[0].childNodes[0].setAttribute('checked',true);
+                            }
+                        }
+                         listitem.childNodes[0].childNodes[j].appendChild(htmlout);
+                         var  htmlclear = document.createElement("div");
+                         htmlclear.setAttribute("style", "clear:both");
+                         listitem.childNodes[0].childNodes[j].appendChild(htmlclear);
+                         listitem.childNodes[0].childNodes[j].childNodes[0].childNodes[0].setAttribute("disabled",true);
+
+                  }
+
+                }
+                else if(type_question=="select")
+                {
+                    console.log(listitem.childNodes[0]);
+                    var selectind = listitem.childNodes[0].selectedIndex;
+                    console.log(listitem.childNodes[0].selectedIndex);
+                    listitem.childNodes[0].setAttribute("disabled",true);
+                    listitem.childNodes[0].selectedIndex= data[i][2];
+
+                }
+                else if(type_question=="integer")
+                {
+                    console.log("+++++");
+                    console.log(listitem.childNodes[0].value);
+                    console.log("+++++");
+                    listitem.childNodes[0].setAttribute("disabled",true);
+                     listitem.childNodes[0].value= data[i];
+                }
+                else if(type_question=="real")
+                {
+                      listitem.childNodes[0].setAttribute("disabled",true);
+                       listitem.childNodes[0].value= data[i];
+
+                }
+                else if(type_question=="textarea")
+                {
+
+                        listitem.childNodes[0].setAttribute("disabled",true);
+                        listitem.childNodes[0].value= data[i];
+                }
+
+            }
+            $("#survey-submit-div").remove();
+            console.log(data);
+            console.log(data.length);
+            if(data.length>0)
+            {
+            if(data[0][2]!=-1)
+            {
+            var htmltip = document.createElement("div");
+            var htmlover = document.createTextNode("您已提交投票/问卷!");
+            htmltip.setAttribute("style","margin-left:18%");
+            htmltip.append(htmlover);
+            $("#survey").after(htmltip);
+            }
+            }
+   }
+</script>
+<!--<script type="text/javascript">-->
+<!--   wx.config({-->
+<!--   debug: false,  //调式模式，设置为ture后会直接在网页上弹出调试信息，用于排查问题-->
+<!--   appId: 'wxb50bc8921024a508',-->
+<!--   timestamp: {{ SignPackage.timestamp }},-->
+<!--   nonceStr: '{{ SignPackage.nonceStr }}',-->
+<!--   signature: '{{ SignPackage.signature }}',-->
+<!--   jsApiList: [  //需要使用的网页服务接口-->
+<!--       'checkJsApi',  //判断当前客户端版本是否支持指定JS接口-->
+<!--       'onMenuShareTimeline', //分享给好友-->
+<!--       'onMenuShareAppMessage', //分享到朋友圈-->
+<!--       'onMenuShareQQ',  //分享到QQ-->
+<!--       'onMenuShareWeibo' //分享到微博-->
+<!--   ]-->
+<!-- });-->
+<!-- wx.ready(function () {   //ready函数用于调用API，如果你的网页在加载后就需要自定义分享和回调功能，需要在此调用分享函数。//如果是微信游戏结束后，需要点击按钮触发得到分值后分享，这里就不需要调用API了，可以在按钮上绑定事件直接调用。因此，微信游戏由于大多需要用户先触发获取分值，此处请不要填写如下所示的分享API-->
+<!--            // 1 判断当前版本是否支持指定 JS 接口，支持批量判断-->
+<!--                wx.checkJsApi({-->
+<!--                    jsApiList: [-->
+<!--                      'onMenuShareAppMessage'-->
+<!--                    ],-->
+<!--                    success: function (res) {-->
+<!--                      //alert(JSON.stringify(res));-->
+<!--                    }-->
+<!--                });-->
+<!--wx.onMenuShareTimeline({  //例如分享到朋友圈的API-->
+<!--   title: '{{article.title}}', // 分享标题-->
+<!--   link: '{{SignPackage.url}}', // 分享链接-->
+<!--   imgUrl: '', // 分享图标-->
+<!--   success: function () {-->
+<!--       // 用户确认分享后执行的回调函数-->
+<!--   },-->
+<!--   cancel: function () {-->
+<!--       // 用户取消分享后执行的回调函数-->
+<!--   }-->
+<!--});-->
+<!--wx.onMenuShareAppMessage({-->
+<!--    title: '{{article.title}}', // 分享标题-->
+<!--    desc: '', // 分享描述-->
+<!--    link: '{{SignPackage.url}}', // 分享链接-->
+<!--    imgUrl: '', // 分享图标-->
+<!--    type: '', // 分享类型,music、video或link，不填默认为link-->
+<!--    dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空-->
+<!--    success: function () {-->
+<!--        // 用户确认分享后执行的回调函数-->
+<!--    },-->
+<!--    cancel: function () {-->
+<!--        // 用户取消分享后执行的回调函数-->
+<!--    }-->
+<!--});-->
+<!--wx.onMenuShareQQ({-->
+<!--    title: '{{article.title}}', // 分享标题-->
+<!--    desc: '', // 分享描述-->
+<!--    link: '{{SignPackage.url}}', // 分享链接-->
+<!--    imgUrl: '', // 分享图标-->
+<!--    success: function () {-->
+<!--       // 用户确认分享后执行的回调函数-->
+<!--    },-->
+<!--    cancel: function () {-->
+<!--       // 用户取消分享后执行的回调函数-->
+<!--    }-->
+<!--});-->
+<!--});-->
+<!--wx.error(function (res) {-->
+<!-- alert(res.errMsg);  //打印错误消息。及把 debug:false,设置为debug:ture就可以直接在网页上看到弹出的错误提示-->
+<!--});-->
+<!--</script>-->
+{% endwith %}
+{% endblock %}

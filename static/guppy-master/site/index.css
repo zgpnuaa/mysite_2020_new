@@ -1,0 +1,70 @@
+body {
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.navbar {
+    margin-bottom: 0px;
+}
+
+.navbar-brand, .navbar-nav li a {
+    line-height: 100px;
+    height: 100px;
+    padding-top: 0;
+    font-size: 36px;
+}
+
+.navbar-nav li a {
+    font-size: 16pt;
+}
+    
+.navbar-brand {
+    padding-left: 0;
+}
+
+a.output-select {
+    padding: 5px;
+    color: #9cf;
+    text-decoration: none;
+}
+
+a.output-selected {
+    border-bottom: 1px solid #fff;
+}
+
+div.highlight input {
+    color:#333;
+}
+
+div.highlight {
+    width:100%;
+    padding:20px;
+    background-color:#024;
+    color:#efefef
+}
+
+#guppy1 {
+    width: 400px;
+    border: 1px solid black;
+    padding: 10px;
+    box-shadow: 1px 1px 1px 0 lightgray inset;
+    cursor: text;
+    position:relative;
+}
+
+#result {
+    width: 800px;
+    border: 1px solid black;
+    padding: 10px;
+}
+
+#help_card {
+    width: 800px;
+    float: left;
+    border: 1px solid black;
+    padding: 10px;
+}
+
+#stuff {
+    padding-top:10px;
+}

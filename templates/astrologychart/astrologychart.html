@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% load article_tags %}
+
+{% block title %}星晴{% endblock %}
+{%block content %}
+<link rel="stylesheet" href="{% static 'css/style-city.css' %}">
+<script src="{% static 'js/region.js' %}"></script>
+<div>
+
+<div>
+
+             <div>
+                 <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp星座学是天文学、心理学及统计学在人类内在能量和成长指引方面的综合应用，相关历史请参考《<a href="http://www.zhugaoping.com/article/list-article-detail/12/Xing-Zuo-De-Qi-Yuan-Yu-Li-Shi/">星座的起源与历史</a>》，天文学相关概念请参考《<a href="http://www.zhugaoping.com/article/list-article-detail/11/Xing-Zuo-He-Xing-Pan-De-Tian-Wen-Xue-Ji-Chu/">星座和星盘的天文学基础</a>》。</p>
+                <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp本项目当前仅支持1900年～2019年间出生在中国的小伙伴，暂不支持出生于国外的地球人，当然如果你是个外星人，也是不支持的。</p>
+                 <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp时间需尽量精确到分，否则计算出来会不够准确。</p>
+
+                </div>
+            <br/>
+                <div class="text-left" style="clear：both">
+                <label >请选择出生地点：</label>
+                </div>
+            <div class="text-left" style=" display:inline;margin-top:15px">
+            <!--省份选择-->
+           <div style="float:left;margin-left:5px;margin-right:5px">  <select id="prov" onchange="showCity(this)" class="form-control">
+                <option>=请选择省份=</option>
+
+            </select></div>
+
+            <!--城市选择-->
+           <div style="float:left;margin-left:5px;margin-right:5px">  <select id="city" onchange="showCountry(this)" class="form-control">
+                <option>=请选择城市=</option>
+            </select></div>
+
+            <!--县区选择-->
+          <div style="float:left;margin-left:5px;margin-right:5px">   <select id="country" onchange="selecCountry(this)" class="form-control">
+                <option>=请选择县区=</option>
+            </select></div>
+                </div>
+
+    <div  style="clear:both"></div>
+    <br>
+
+        <div class="text-left"  ><label> 请选择出生时间：</label></div>
+
+        <div   class="text-left" style=" display:inline;margin-top:15px">
+            <div style="float:left;"><select id="year" onchange="selectime()" class="sel_year form-control"> </select></div>
+             <div style="float:left;margin-top:8px;margin-left:5px;margin-right:5px" >年</div>
+        <div style="float:left;"><select id="month" onchange="selectime() " class="sel_month form-control"  > </select></div>
+            <div style="float:left;margin-top:8px;margin-left:5px;margin-right:5px">月</div>
+       <div style="float:left;"> <select id="day"  onchange="selectime() " class="sel_day form-control"   > </select> </div>
+            <div style="float:left;margin-top:8px;margin-left:5px;margin-right:5px">日</div>
+           <div style="float:left;"> <select id="hour" onchange="selectime() " class="sel_hour form-control" > </select> </div>
+            <div style="float:left;margin-top:8px;margin-left:5px;margin-right:5px">时</div>
+          <div style="float:left;">  <select  id="minute" onchange="selectime() " class="sel_minute form-control"  > </select></div>
+            <div style="float:left;margin-top:8px;margin-left:5px;margin-right:5px">分</div>
+            </div>
+
+         <div  style="clear:both"></div>
+    <br>
+            <div style="clear:both" class="text-center">
+            <button type="button"  class="btn met1   btn-success active text-right" onClick="calculate()">确定</button>
+                </div>
+
+    </div>
+     </br>
+
+    <div id="paper" class="text-center" style="width:620; height:620;"></div>
+    <div id="jiedu"></div>
+
+</div>
+<!--**********************************华丽丽*************************************-->
+
+<!--<script src="{% static 'js/city.js' %}"></script>-->
+<!--<script src="{% static 'js/city-location.js' %}"></script>-->
+
+<script src="{% static 'js/method01.js' %}"></script>
+
+<script  src="{% static 'js/jquery.js' %}"> </script>
+<script type="text/javascript" src="{% static 'js/jquery.nstSlider.min.js' %}"></script>
+<script  src="{% static 'js/birthday.js' %}"> </script>
+<script type="text/javascript" src="{% static 'js/svgscreen.js'%}"></script>
+<!--<script src="{% static 'js/bootstrap-select.min.js' %}"></script>-->
+<!--<script src="{% static 'js/defaults-zh_CN.min.js' %}"></script>-->
+<!--<link rel="stylesheet"  href="{% static 'css/bootstrap-select.min.css' %}">-->
+<script>
+$(function () {
+	$.ms_DatePicker({
+            YearSelector: ".sel_year",
+            MonthSelector: ".sel_month",
+            DaySelector: ".sel_day",
+            HourSelector: ".sel_hour",
+            MinuteSelector: ".sel_minute",
+    });
+});
+</script>
+<script type="text/javascript" src="{% static 'js/layer.js' %}"></script>
+<script src="{% static 'js/astrochart.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/balloon.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/jquery.nstSlider.min.css' %}">
+
+
+<script>
+var dataastr ;
+var dataplanets;
+var datacusps;
+var dataangles;
+/*点击确定按钮显示用户所选的地址*/
+function calculate() {
+            var latitude = provice[current.prov]["districts"][current.city].districts[current.country].center["latitude"].toString();
+            var strs= new Array();
+            strs=latitude.split(".");
+            latitude=strs[0]+'n'+Math.round((parseFloat('0.'+strs[1])*60)).toString();
+
+            var longitude =  provice[current.prov]["districts"][current.city].districts[current.country].center["longitude"].toString();
+            strs=longitude.split(".");
+            longitude=strs[0]+'e'+Math.round((parseFloat('0.'+strs[1])*60)).toString();
+
+            var date = $(".sel_year").val()+'/'+$(".sel_month").val()+'/'+$(".sel_day").val();
+            var time = $(".sel_hour").val()+':'+$(".sel_minute").val();
+
+            $.ajax({
+                url: "{% url 'astrologychart:calculateastrology' %}",
+                type: "POST",
+                data: {"latitude":latitude, "longitude":longitude, "date":date, "time":time},
+                success: function(e){
+
+                        if(e!=2&&e!=3){
+                                 $("#paper").empty();
+                                  $("#jiedu").empty();
+                                layer.msg("successful,计算成功");
+                                dataastr= JSON.parse(e);
+                                console.log(dataastr);
+				                var radix = new astrology.Chart('paper', 600, 600, {MARGIN:80, SYMBOL_SCALE:1.05}).radix( dataastr );
+				                radix.addPointsOfInterest( {"As":dataastr['angles']['Asc'],"Ic":dataastr['angles']['IC'],"Ds":dataastr['angles']['Desc'],"Mc":dataastr['angles']['MC']});
+				               radix.aspects();
+
+                                content =   '<h4 class="text-center">出生时刻：' +dataastr['time'] +'&nbsp&nbsp(北京时间)</h4>';
+                                content = content + '<h4 class="text-center" >出生坐标：' +dataastr['coordinate'] +'&nbsp&nbsp(地球经纬度)</h4><br>';
+				                content = content+ '<h3 >行星星座：</h3>';
+
+				                content = content+'<h4>你的'+'<a data-balloon-length="medium" style="color:orange;--balloon-color: orange;--balloon-move: 20px;"  aria-label="'+dataastr['SunSign']['planetmeaning']+'" data-balloon-pos="up">太阳</a>'+ '<object data="/static/astrologyassets/Sun.svg"  type="image/svg+xml"></object>' +'星座是：'+dataastr['SunSign']['chinesesign']+'('+ '<object data="/static/astrologyassets/'+dataastr['SunSign']['englishsign']+'.svg" type="image/svg+xml"></object>'+"&nbsp&nbsp"+dataastr['SunSign']['signlon']+  "&nbsp&nbsp"  +dataastr['SunSign']['englishsign']+')'+'</h4>';
+
+				                content = content+'<p>'+dataastr['SunSign']['meaning']+'</p>';
+
+				                content = content+ '<h4>你的'+'<a data-balloon-length="medium" style="color:green;--balloon-color: green;--balloon-move: 20px;"  aria-label="'+dataastr['MoonSign']['planetmeaning']+'" data-balloon-pos="up">月亮</a>'+ '<object data="/static/astrologyassets/Moon.svg"  type="image/svg+xml"></object>' +'星座是：'+dataastr['MoonSign']['chinesesign']+'(' +'<object data="/static/astrologyassets/'+dataastr['MoonSign']['englishsign']+'.svg" type="image/svg+xml"></object>'+"&nbsp&nbsp"+dataastr['MoonSign']['signlon']+  "&nbsp&nbsp"  +dataastr['MoonSign']['englishsign']+')'+'</h4>';
+
+				                content = content+'<p>'+dataastr['MoonSign']['meaning']+'</p>';
+
+
+				                content = content+ '<h4>你的' +'<a data-balloon-length="medium" style="color:silver;--balloon-color: silver;--balloon-move: 20px;"  aria-label="'+dataastr['MercurySign']['planetmeaning']+'" data-balloon-pos="up">水星</a>'+'<object data="/static/astrologyassets/Mercury.svg"  type="image/svg+xml"></object>' +'星座是：'+dataastr['MercurySign']['chinesesign']+'(' +'<object data="/static/astrologyassets/'+dataastr['MercurySign']['englishsign']+'.svg" type="image/svg+xml"></object>'+"&nbsp&nbsp"+dataastr['MercurySign']['signlon']+  "&nbsp&nbsp"  +dataastr['MercurySign']['englishsign']+')'+'</h4>';
+
+				                content = content+'<p>'+dataastr['MercurySign']['meaning']+'</p>';
+
+				                content = content+ '<h4>你的'+'<a data-balloon-length="medium" style="color:gold;--balloon-color: gold;--balloon-move: 20px;"  aria-label="'+dataastr['VenusSign']['planetmeaning']+'" data-balloon-pos="up">金星</a>'+ '<object data="/static/astrologyassets/Venus.svg"  type="image/svg+xml"></object>' +'星座是：'+dataastr['VenusSign']['chinesesign']+'(' +'<object data="/static/astrologyassets/'+dataastr['VenusSign']['englishsign']+'.svg" type="image/svg+xml"></object>'+"&nbsp&nbsp"+dataastr['VenusSign']['signlon']+  "&nbsp&nbsp"  +dataastr['VenusSign']['englishsign']+')'+'</h4>';
+
+				                content = content+'<p>'+dataastr['VenusSign']['meaning']+'</p>';
+
+
+				                content = content+ '<h4>你的'+'<a data-balloon-length="medium" style="color:red;--balloon-color: red;--balloon-move: 20px;"  aria-label="'+dataastr['MarsSign']['planetmeaning']+'" data-balloon-pos="up">火星</a>'+ '<object data="/static/astrologyassets/Mars.svg"  type="image/svg+xml"></object>' +'星座是：'+dataastr['MarsSign']['chinesesign']+'(' +'<object data="/static/astrologyassets/'+dataastr['MarsSign']['englishsign']+'.svg" type="image/svg+xml"></object>'+"&nbsp&nbsp"+dataastr['MarsSign']['signlon']+  "&nbsp&nbsp"  +dataastr['MarsSign']['englishsign']+')'+'</h4>';
+
+				                content = content+'<p>'+dataastr['MarsSign']['meaning']+'</p>';
+
+				                content = content+ '<h4>你的'+'<a data-balloon-length="medium" style="color:purple;--balloon-color: purple;--balloon-move: 20px;"  aria-label="'+dataastr['JupiterSign']['planetmeaning']+'" data-balloon-pos="up">木星</a>'+ '<object data="/static/astrologyassets/Jupiter.svg"  type="image/svg+xml"></object>' +'星座是：'+dataastr['JupiterSign']['chinesesign']+'(' +'<object data="/static/astrologyassets/'+dataastr['JupiterSign']['englishsign']+'.svg" type="image/svg+xml"></object>'+"&nbsp&nbsp"+dataastr['JupiterSign']['signlon']+  "&nbsp&nbsp"  +dataastr['JupiterSign']['englishsign']+')'+'</h4>';
+
+				                content = content+'<p>'+dataastr['JupiterSign']['meaning']+'</p>';
+
+				                content = content+ '<h4>你的'+'<a data-balloon-length="medium" style="color:brown;--balloon-color: brown;--balloon-move: 20px;"  aria-label="'+dataastr['SaturnSign']['planetmeaning']+'" data-balloon-pos="up">土星</a>'+ '<object data="/static/astrologyassets/Saturn.svg"  type="image/svg+xml"></object>' +'星座是：'+dataastr['SaturnSign']['chinesesign']+'(' +'<object data="/static/astrologyassets/'+dataastr['SaturnSign']['englishsign']+'.svg" type="image/svg+xml"></object>'+"&nbsp&nbsp"+dataastr['SaturnSign']['signlon']+  "&nbsp&nbsp"  +dataastr['SaturnSign']['englishsign']+')'+'</h4>';
+
+				                content = content+'<p>'+dataastr['SaturnSign']['meaning']+'</p>';
+
+
+				                content = content+ '<h4>你的' +'<a data-balloon-length="medium" style="color:aquamarine;--balloon-color: aquamarine;--balloon-move: 20px;"  aria-label="'+dataastr['UranusSign']['planetmeaning']+'" data-balloon-pos="up">天王星</a>'+ '<object data="/static/astrologyassets/Uranus.svg"  type="image/svg+xml"></object>' +'星座是：'+dataastr['UranusSign']['chinesesign']+'(' +'<object data="/static/astrologyassets/'+dataastr['UranusSign']['englishsign']+'.svg" type="image/svg+xml"></object>'+"&nbsp&nbsp"+dataastr['UranusSign']['signlon']+  "&nbsp&nbsp"  +dataastr['UranusSign']['englishsign']+')'+'</h4>';
+
+				                content = content+'<p>'+dataastr['UranusSign']['meaning']+'</p>';
+
+
+
+				                content = content+ '<h4>你的'+'<a data-balloon-length="medium" style="color:navy;--balloon-color: navy;--balloon-move: 20px;"  aria-label="'+dataastr['NeptuneSign']['planetmeaning']+'" data-balloon-pos="up">海王星</a>'+ '<object data="/static/astrologyassets/Neptune.svg"  type="image/svg+xml"></object>' +'星座是：'+dataastr['NeptuneSign']['chinesesign']+'(' +'<object data="/static/astrologyassets/'+dataastr['NeptuneSign']['englishsign']+'.svg" type="image/svg+xml"></object>'+"&nbsp&nbsp"+dataastr['NeptuneSign']['signlon']+  "&nbsp&nbsp"  +dataastr['NeptuneSign']['englishsign']+')'+'</h4>';
+
+				                content = content+'<p>'+dataastr['NeptuneSign']['meaning']+'</p>';
+
+
+				                content = content+ '<h4>你的'+'<a data-balloon-length="medium" style="color:DarkRed;--balloon-color: DarkRed;--balloon-move: 20px;"  aria-label="'+dataastr['PlutoSign']['planetmeaning']+'" data-balloon-pos="up">冥王星</a>'+ '<object data="/static/astrologyassets/Pluto.svg"  type="image/svg+xml"></object>' +'星座是：'+dataastr['PlutoSign']['chinesesign']+'(' +'<object data="/static/astrologyassets/'+dataastr['PlutoSign']['englishsign']+'.svg" type="image/svg+xml"></object>'+"&nbsp&nbsp"+dataastr['PlutoSign']['signlon']+  "&nbsp&nbsp"  +dataastr['PlutoSign']['englishsign']+')'+'</h4>';
+
+				                content = content+'<p>'+dataastr['PlutoSign']['meaning']+'</p>';
+
+				                content = content+ '<h4>你的'+'<a data-balloon-length="medium" style="color:blue;--balloon-color: blue;--balloon-move: 20px;"  aria-label="'+dataastr['ChironSign']['planetmeaning']+'" data-balloon-pos="up">凯龙星</a>'+ '<object data="/static/astrologyassets/Chiron.svg"  type="image/svg+xml"></object>' +'星座是：'+dataastr['ChironSign']['chinesesign']+'(' +'<object data="/static/astrologyassets/'+dataastr['ChironSign']['englishsign']+'.svg" type="image/svg+xml"></object>'+"&nbsp&nbsp"+dataastr['ChironSign']['signlon']+  "&nbsp&nbsp"  +dataastr['ChironSign']['englishsign']+')'+'</h4>';
+
+				                content = content+'<p>'+dataastr['ChironSign']['meaning']+'</p>';
+
+                                content = content+ '<br/><br/>';
+                                content = content+ '<h3 >行星宫位：</h3>';
+
+                                content = content+'<h4>你的太阳'+ '<object data="/static/astrologyassets/Sun.svg"  type="image/svg+xml"></object>' +'落在：'+dataastr['SunHouse']['house'] +''+'</h4>';
+				                content = content+'<p>'+dataastr['SunHouse']['introduction']+'</p>';
+				                content = content+'<p>'+dataastr['SunHouse']['meaning']+'</p>';
+
+                                content = content+'<h4>你的月亮'+ '<object data="/static/astrologyassets/Moon.svg"  type="image/svg+xml"></object>' +'落在：'+dataastr['MoonHouse']['house'] +''+'</h4>';
+				                content = content+'<p>'+dataastr['MoonHouse']['introduction']+'</p>';
+				                content = content+'<p>'+dataastr['MoonHouse']['meaning']+'</p>';
+
+				                content = content+'<h4>你的水星'+ '<object data="/static/astrologyassets/Mercury.svg"  type="image/svg+xml"></object>' +'落在：'+dataastr['MercuryHouse']['house'] +''+'</h4>';
+				                content = content+'<p>'+dataastr['MercuryHouse']['introduction']+'</p>';
+				                content = content+'<p>'+dataastr['MercuryHouse']['meaning']+'</p>';
+
+				                content = content+'<h4>你的金星'+ '<object data="/static/astrologyassets/Venus.svg"  type="image/svg+xml"></object>' +'落在：'+dataastr['VenusHouse']['house'] +''+'</h4>';
+				                content = content+'<p>'+dataastr['VenusHouse']['introduction']+'</p>';
+				                content = content+'<p>'+dataastr['VenusHouse']['meaning']+'</p>';
+
+				                content = content+'<h4>你的火星'+ '<object data="/static/astrologyassets/Mars.svg"  type="image/svg+xml"></object>' +'落在：'+dataastr['MarsHouse']['house'] +''+'</h4>';
+				                content = content+'<p>'+dataastr['MarsHouse']['introduction']+'</p>';
+				                content = content+'<p>'+dataastr['MarsHouse']['meaning']+'</p>';
+
+				                content = content+'<h4>你的木星'+ '<object data="/static/astrologyassets/Jupiter.svg"  type="image/svg+xml"></object>' +'落在：'+dataastr['JupiterHouse']['house'] +''+'</h4>';
+				                content = content+'<p>'+dataastr['JupiterHouse']['introduction']+'</p>';
+				                content = content+'<p>'+dataastr['JupiterHouse']['meaning']+'</p>';
+
+				                content = content+'<h4>你的土星'+ '<object data="/static/astrologyassets/Saturn.svg"  type="image/svg+xml"></object>' +'落在：'+dataastr['SaturnHouse']['house'] +''+'</h4>';
+				                content = content+'<p>'+dataastr['SaturnHouse']['introduction']+'</p>';
+				                content = content+'<p>'+dataastr['SaturnHouse']['meaning']+'</p>';
+
+				                content = content+'<h4>你的天王星'+ '<object data="/static/astrologyassets/Uranus.svg"  type="image/svg+xml"></object>' +'落在：'+dataastr['UranusHouse']['house'] +''+'</h4>';
+				                content = content+'<p>'+dataastr['UranusHouse']['introduction']+'</p>';
+				                content = content+'<p>'+dataastr['UranusHouse']['meaning']+'</p>';
+
+				                content = content+'<h4>你的海王星'+ '<object data="/static/astrologyassets/Neptune.svg"  type="image/svg+xml"></object>' +'落在：'+dataastr['NeptuneHouse']['house'] +''+'</h4>';
+				                content = content+'<p>'+dataastr['NeptuneHouse']['introduction']+'</p>';
+				                content = content+'<p>'+dataastr['NeptuneHouse']['meaning']+'</p>';
+
+				                content = content+'<h4>你的冥王星'+ '<object data="/static/astrologyassets/Pluto.svg"  type="image/svg+xml"></object>' +'落在：'+dataastr['PlutoHouse']['house'] +''+'</h4>';
+				                content = content+'<p>'+dataastr['PlutoHouse']['introduction']+'</p>';
+				                content = content+'<p>'+dataastr['PlutoHouse']['meaning']+'</p>';
+
+                                content = content+ '<br/><br/>';
+                                content = content+ '<h3 >基本点：</h3>';
+
+                                content = content+'<h4>你的上升'+ '<object data="/static/astrologyassets/ASC.svg"  type="image/svg+xml"></object>' +'星座是：'+dataastr['ASC']['chinesesign'] +"&nbsp&nbsp"+dataastr['ASC']['signlon']+  "&nbsp&nbsp"  +''+'</h4>';
+				                content = content+'<p>'+dataastr['ASC']['introduction']+'</p>';
+				                content = content+'<p>'+dataastr['ASC']['meaning']+'</p>';
+
+				                content = content+'<h4>你的下降'+ 'DESC' +'星座是：'+dataastr['DESC']['chinesesign'] +"&nbsp&nbsp"+dataastr['DESC']['signlon']+  "&nbsp&nbsp"  +''+'</h4>';
+				                content = content+'<p>'+dataastr['DESC']['introduction']+'</p>';
+				                content = content+'<p>'+dataastr['DESC']['meaning']+'</p>';
+
+				                content = content+'<h4>你的天顶'+ '<object data="/static/astrologyassets/MC.svg"  type="image/svg+xml"></object>' +'星座是：'+dataastr['MC']['chinesesign'] +"&nbsp&nbsp"+dataastr['MC']['signlon']+  "&nbsp&nbsp"  +''+'</h4>';
+				                content = content+'<p>'+dataastr['MC']['introduction']+'</p>';
+				                content = content+'<p>'+dataastr['MC']['meaning']+'</p>';
+
+				                content = content+'<h4>你的天底'+ 'IC' +'星座是：'+dataastr['IC']['chinesesign'] +"&nbsp&nbsp"+dataastr['IC']['signlon']+  "&nbsp&nbsp"  +''+'</h4>';
+				                content = content+'<p>'+dataastr['IC']['introduction']+'</p>';
+				                content = content+'<p>'+dataastr['IC']['meaning']+'</p>';
+
+				                content = content+ '<br/><br/>';
+                                content = content+ '<h3 >月亮交点：</h3>';
+
+                                content = content+'<h4>你的月亮北交点'+ '<object data="/static/astrologyassets/northnode.svg"  type="image/svg+xml"></object>' +'星座是：'+dataastr['Node']['chinesesign_nnode'] +"&nbsp&nbsp"+dataastr['Node']['signlon_nnode']+  "&nbsp&nbsp" +'</h4>';
+				                content = content+'<p>'+dataastr['Node']['introduction_nnode']+'</p>';
+				                content = content+'<h4>你的月亮南交点'+ '<object data="/static/astrologyassets/southnode.svg"  type="image/svg+xml"></object>' +'星座是：'+dataastr['Node']['chinesesign_snode'] +"&nbsp&nbsp"+dataastr['Node']['signlon_snode']+  "&nbsp&nbsp" +'</h4>';
+				                content = content+'<p>'+dataastr['Node']['introduction_snode']+'</p>';
+				                content = content+'<p>'+dataastr['Node']['meaning']+'</p>';
+
+                                content = content+ '<br/><br/>';
+                                content = content+ '<hr/>';
+                                content = content + '<br><h4  class="text-center">为了帮助完善数据库，请评价一下准确性，并发表一点自己的见解吧：</h4><br>';
+                                content = content + ' <div class="row" style="margin-right:10px;margin-top:20px">'+
+                    '<div class="col-md-4 text-center"><span>准确度反馈:</span></div>'+
+                    '<div class="col-md-8 text-center">'+
+                        '<div class="nstSlider" data-range_min="0" data-range_max="100" data-cur_min="100"     data-cur_max="0">'+
+                            '<div class="bar"></div><div class="leftGrip"></div> </div><div class="leftLabel" ></div>'+
+                    '</div></div><div class="row" style="margin-right:10px;margin-top:20px">'+
+                    '<div class="col-md-4 text-center"><span>意见反馈:</span></div>'+
+                    '<div class="col-md-8 text-left"><textarea id="feedback" cols="40" rows="10" placeholder="您认为不足或有误的地方，优化建议，自己的分析和理解等等，请随心所欲..." id="id_feedback"></textarea></div>'+
+    '</div> <div  class="text-right">'+
+        '<button type="button"  class="btn met1  btn-success active text-right" onClick="feedback()">提交</button></div>';
+
+				                $("#jiedu").append(content);
+				                slide();
+
+
+                                }else if(e=="2"){
+                                    layer.msg("sorry，发布失败",{icon:2,time:2000});
+                                 }else{
+                                    layer.msg("name need to input, it is can be empty.");
+                                  }
+                               },
+                 });
+             };
+
+</script>
+<script>
+
+/*反馈*/
+function feedback() {
+            var latitude = provice[current.prov]["districts"][current.city].districts[current.country].center["latitude"].toString();
+            var strs= new Array();
+            strs=latitude.split(".");
+            latitude=strs[0]+'n'+Math.round((parseFloat('0.'+strs[1])*60)).toString();
+
+            var longitude =  provice[current.prov]["districts"][current.city].districts[current.country].center["longitude"].toString();
+            strs=longitude.split(".");
+            longitude=strs[0]+'e'+Math.round((parseFloat('0.'+strs[1])*60)).toString();
+
+            var date = $(".sel_year").val()+'/'+$(".sel_month").val()+'/'+$(".sel_day").val();
+            var time = $(".sel_hour").val()+':'+$(".sel_minute").val();
+
+            var accuracy = $(".leftLabel").text();
+            var feedback = $("#feedback").val();
+            console.log(accuracy);
+            console.log(feedback);
+
+            $.ajax({
+                url: "{% url 'astrologychart:feedbackastrology' %}",
+                type: "POST",
+                data: {"latitude":latitude, "longitude":longitude, "date":date, "time":time, "accuracy":accuracy, "feedback":feedback},
+                success: function(e){
+
+                        if(e=="1"){
+
+                                layer.msg("感谢反馈！");
+                                }else if(e=="2"){
+                                    layer.msg("sorry，反馈失败",{icon:2,time:2000});
+                                 }else{
+                                    layer.msg("请填写反馈意见!");
+                                  }
+                               },
+                 });
+             };
+
+</script>
+<script>
+<!--  	var data = {-->
+<!--				"planets":{"Lilith":[18], "Chiron":[ 18.9], "Pluto":[ 25.5], "Neptune":[ 20.45, 0.2], "Uranus":[20.9], "Saturn":[323.4020429, -0.2], "Jupiter":[ 193.08973], "Mars":[ 99.99722], "Moon":[ 80.69047], "Sun":[ 341.8180440207085], "Mercury":[ 353.74459], "Venus":[18.46907], "NNode":[  257.2275610]},-->
+<!--				"cusps":[296, 350, 30, 56, 75, 94, 116, 170, 210, 236, 255, 274]-->
+<!--			};-->
+
+
+	 dataastr = {
+				"planets":{"Lilith":[18], "Chiron":[ 18.9], "Pluto":[ 25.5], "Neptune":[ 20.45, 0.2], "Uranus":[20.9], "Saturn":[323.4020429, -0.2], "Jupiter":[ 193.08973], "Mars":[ 99.99722], "Moon":[ 80.69047], "Sun":[ 341.8180440207085], "Mercury":[ 353.74459], "Venus":[18.46907], "NNode":[  257.2275610]},
+				"cusps":[296, 350, 30, 56, 75, 94, 116, 170, 210, 236, 255, 274]
+			};
+</script>
+<script>
+function slide() {
+       $('.nstSlider').nstSlider({
+        "left_grip_selector": ".leftGrip",
+        "value_bar_selector": ".bar",
+        "value_changed_callback": function(cause, leftValue, rightValue) {
+            var $container = $(this).parent(),
+                g = 255 - 127 + leftValue,
+                r = 255 - g,
+                b = 0;
+            $container.find('.leftLabel').text(leftValue+'%');
+            $(this).find('.bar').css('background', 'rgb(' + [r, g, b].join(',') + ')');
+        }
+    });
+    }
+</script>
+
+{% endblock %}

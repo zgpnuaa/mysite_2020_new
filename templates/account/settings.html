@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block title %}账号管理{% endblock %}
+
+{% block content %}
+<div class="container ">
+    <h3>密码管理:</h3>
+  {% if not user.has_usable_password %}
+
+    <p style="color: red">你还没有设置密码。</p>
+        <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">确认</button>
+        </form>
+  {% else %}
+    <div class="row mt-4 ml-4" style="margin-left:20px;color:blue;">
+        <a href="{% url 'account:password_change' %}" class="btn btn-primary" role="button">修改密码</a>
+    </div>
+  {% endif %}
+
+
+<h3>第三方登录:</h3>
+<h3><img src="{% static '/images/github.jpg' %}" style="height:30px">&nbsp Github连接</h3>
+    {% if github_login %}
+    <p>连接Github账号：<a href="https://github.com/{{ github_login.extra_data.login }}/" target="_blank">{{ github_login.extra_data.login }}</a></p>
+    {% if can_disconnect %}
+      <form method="post" action="{% url 'social:disconnect' 'github' %}">
+        {% csrf_token %}
+        <button type="submit">解除连接GitHub</button>
+      </form>
+    {% else %}
+      <button type="button" disabled>解除连接GitHub</button>
+      <p style="color: red">解除连接GitHub前请为你的账号 <a href="{% url 'account:password' %}">设置密码</a> 。</p>
+    {% endif %}
+  {% else %}
+    <a href="{% url 'social:begin' 'github' %}">连接到GitHub</a>
+  {% endif %}
+
+<h3><img src="{% static '/images/weibo.jpeg' %}" style="height:30px">&nbsp 微博连接</h3>
+ {% if weibo_login %}
+    <p>连接微博账号：<a href="https://weibo.com/{{ weibo_login.extra_data.login }}/" target="_blank">{{ weibo_login.extra_data.login }}</a></p>
+    {% if can_disconnect %}
+      <form method="post" action="{% url 'social:disconnect' 'weibo' %}">
+        {% csrf_token %}
+        <button type="submit">解除连接微博</button>
+      </form>
+    {% else %}
+      <button type="button" disabled>解除连接微博</button>
+      <p style="color: red">解除连接微博前请为你的账号 <a href="{% url 'account:password' %}">设置密码</a> 。</p>
+    {% endif %}
+  {% else %}
+    <a href="{% url 'social:begin' 'weibo' %}">连接到微博</a>
+  {% endif %}
+
+<h3><img src="{% static '/images/qq2.jpg' %}" style="height:39px">&nbsp QQ连接</h3>
+{% if qq_login %}
+    <p>连接QQ账号：<a href="https://qq.com/{{ qq_login.extra_data.login }}/" target="_blank">{{ qq_login.extra_data.login }}</a></p>
+    {% if can_disconnect %}
+      <form method="post" action="{% url 'social:disconnect' 'qq' %}">
+        {% csrf_token %}
+        <button type="submit">解除连接QQ</button>
+      </form>
+    {% else %}
+      <button type="button" disabled>解除连接QQ</button>
+      <p style="color: red">解除连接QQ前请为你的账号 <a href="{% url 'account:password' %}">设置密码</a> 。</p>
+    {% endif %}
+  {% else %}
+    <a href="{% url 'social:begin' 'qq' %}">连接到QQ</a>
+  {% endif %}
+    </div>
+{% endblock %}

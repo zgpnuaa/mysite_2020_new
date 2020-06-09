@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block title %}注册{% endblock %}
+
+{% block content %}
+
+<div class="row text-center vertical-middle-sm">
+    <h1>欢迎注册！</h1>
+    <p>如果您已有帐号,请直接 <strong> <a href="{% url 'account:user_login' %}">登录 </a> </strong>。</p>
+    {% if tips %}
+    <div style="color:red">{{tips}}</div>
+    {% endif %}
+    <form class="form-horizontal" action="." method="post">{% csrf_token %}
+        <div class="form-group">
+            <label for="{{ form.username.id_for_label }}" class="col-md-5 control-label">用户名</label>
+            <div class="col-md-3 text-center" >{{ form.username }}</div>
+            <span id="feedback_username" class="glyphicon glyphicon-ok col-md-3" style="color:green;margin-top:6px;display: none;"></span>
+        </div>
+        <div class="form-group">
+            <label for="{{ form.email.id_for_label }}" class="col-md-5 control-label">邮箱</label>
+            <div class="col-md-3 text-center">{{ form.email }} </div>
+            <span id="feedback_email" class="glyphicon glyphicon-ok col-md-3 " style="color:green;margin-left:0px;margin-top:6px;display: none;"></span>
+        </div>
+        <div class="form-group">
+            <label  for="{{ profile.birth.id_for_label }}" class="col-md-5 control-label">生日</label>
+            <div id="birthday" class="layui-input-inline col-md-3 text-center">{{ profile.birth }}</div>
+            <span id="feedback_birthday" class="glyphicon glyphicon-remove col-md-3" style="color:green;margin-top:3px;display: none;"></span>
+        </div>
+        <div class="form-group">
+            <label for="{{ profile.phone.id_for_label }}" class="col-md-5 control-label">电话</label>
+            <div class="col-md-3 text-center">{{ profile.phone }}</div>
+            <span id="feedback_phone" class="glyphicon glyphicon-ok col-md-3" style="color:green;margin-top:3px;display: none;"></span>
+        </div>
+        <div class="form-group">
+            <label for="{{ form.password.id_for_label }}" class="col-md-5 control-label">密码</label>
+            <div class="col-md-3 text-center">{{ form.password }}</div>
+            <span id="feedback_password1" class="glyphicon glyphicon-ok col-md-3" style="color:green;margin-top:3px;display: none;"></span>
+        </div>
+        <div class="form-group">
+            <label for="{{ form.password.id_for_label }}" class="col-md-5 control-label">确认密码</label>
+            <div class="col-md-3 text-center" >{{ form.password2 }}</div>
+            <span id="feedback_password2" class="glyphicon glyphicon-ok col-md-3" style="color:green;margin-top:3px;display: none;"></span>
+        </div>
+
+        <input type="submit" class="btn btn-primary btn-lg" value="注册">
+    </form>
+</div>
+<script type="text/javascript">
+
+function isNULL( chars ) {
+  if (chars == null)
+    return true;
+  if ($.trim(chars).length==0)
+    return true;
+  return false;
+}
+var newObject1 = document.createElement("p");
+           newObject1.id = "tip1";
+           newObject1.innerHTML = "";
+           newObject1.align = "center";
+           newObject1.setAttribute("style", "font-size:15px;color:red;margin-top:5px;");
+           newObject1.className = "col-md-3";
+           $("#feedback_username").after(newObject1);
+
+function check_username(v){
+        $(function() {
+
+           if(isNULL(v))
+           { $("#feedback_username").attr("class", 'glyphicon glyphicon-remove col-md-1');
+             $("#feedback_username").css("color", 'red');
+             $("#feedback_username").css("display", '');
+             newObject1.innerHTML = "请输入您的用户名！";
+            }
+
+            else
+            { $("#feedback_username").attr("class", 'glyphicon glyphicon-ok col-md-1');
+            $("#feedback_username").css("color", 'green');
+            $("#feedback_username").css("display", '');
+            newObject1.innerHTML = "";}
+
+
+        });
+        }
+
+function isEmail(str){
+    var re=/^\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z0-9]+$/;
+  if (re.test(str) != true) {
+    return false;
+  }else{
+    return true;
+  }
+}
+           var newObject = document.createElement("p");
+           newObject.id = "tip";
+           newObject.innerHTML = "";
+           newObject.align = "center";
+           newObject.setAttribute("style", "font-size:15px;color:red;margin-top:5px;");
+           newObject.className = "col-md-3";
+           $("#feedback_email").after(newObject);
+    function check_email(v){
+        $(function() {
+
+           if(isNULL(v))
+           {$("#feedback_email").attr("class", 'glyphicon glyphicon-remove col-md-1');
+            $("#feedback_email").css("color", 'red');
+            $("#feedback_email").css("display", '');
+            newObject.innerHTML = "请输入您的邮箱！";
+
+            }
+
+           else if(isEmail(v)){
+            $("#feedback_email").attr("class", 'glyphicon glyphicon-ok col-md-1');
+            $("#feedback_email").css("color", 'green');
+            $("#feedback_email").css("display", '');
+             newObject.innerHTML = "";
+            }
+           else {
+           $("#feedback_email").attr("class", 'glyphicon glyphicon-remove col-md-1');
+            $("#feedback_email").css("color", 'red');
+            $("#feedback_email").css("display", '');
+            newObject.innerHTML = "邮箱格式错误！";
+           }
+
+        });
+  }
+  var newObject3= document.createElement("p");
+           newObject3.id = "tip3";
+           newObject3.innerHTML = "";
+           newObject3.align = "center";
+           newObject3.setAttribute("style", "font-size:15px;color:red;margin-top:5px;");
+           newObject3.className = "col-md-3";
+           $("#feedback_birthday").after(newObject3);
+
+function check_birthday(v){
+        $(function() {
+
+           if(isNULL(v))
+           { $("#feedback_birthday").attr("class", 'glyphicon glyphicon-remove col-md-1');
+             $("#feedback_birthday").css("color", 'red');
+             $("#feedback_birthday").css("display", '');
+             newObject3.innerHTML = "请输入您的生日！";
+            }
+            else if(!(v.match(/^(\d{4})(\/)(\d{2})(\/)(\d{2})$/)))
+            {$("#feedback_birthday").attr("class", 'glyphicon glyphicon-remove col-md-1');
+             $("#feedback_birthday").css("color", 'red');
+             $("#feedback_birthday").css("display", '');
+             newObject3.innerHTML = "日期格式不正确(XXXX/XX/XX)";}
+            else
+            { $("#feedback_birthday").attr("class", 'glyphicon glyphicon-ok col-md-1');
+            $("#feedback_birthday").css("color", 'green');
+            $("#feedback_birthday").css("display", '');
+            newObject3.innerHTML = "";}
+
+
+        });
+        }
+        var newObject4 = document.createElement("p");
+           newObject4.id = "tip4";
+           newObject4.innerHTML = "";
+           newObject4.align = "center";
+           newObject4.setAttribute("style", "font-size:15px;color:red;margin-top:5px;");
+           newObject4.className = "col-md-3";
+           $("#feedback_phone").after(newObject4);
+
+function check_phone(v){
+        $(function() {
+
+           if(isNULL(v))
+           { $("#feedback_phone").attr("class", 'glyphicon glyphicon-remove col-md-1');
+             $("#feedback_phone").css("color", 'red');
+             $("#feedback_phone").css("display", '');
+             newObject4.innerHTML = "请输入您的电话！";
+            }
+            else  if(!(/^1[3456789]\d{9}$/.test(v)))
+            {  $("#feedback_phone").attr("class", 'glyphicon glyphicon-remove col-md-1');
+             $("#feedback_phone").css("color", 'red');
+             $("#feedback_phone").css("display", '');
+             newObject4.innerHTML = "输入的手机号码格式有误！";}
+            else
+            { $("#feedback_phone").attr("class", 'glyphicon glyphicon-ok col-md-1');
+            $("#feedback_phone").css("color", 'green');
+            $("#feedback_phone").css("display", '');
+            newObject4.innerHTML = "";}
+
+        });
+        }
+           var newObject5 = document.createElement("p");
+           newObject5.id = "tip5";
+           newObject5.innerHTML = "";
+           newObject5.align = "center";
+           newObject5.setAttribute("style", "font-size:15px;color:red;margin-top:5px;");
+           newObject5.className = "col-md-3";
+           $("#feedback_password1").after(newObject5);
+var pw1 = '';
+var pw2 = '';
+function check_password1(v){
+        $(function() {
+
+           pw1 = v;
+           if(isNULL(v))
+           { $("#feedback_password1").attr("class", 'glyphicon glyphicon-remove col-md-1');
+             $("#feedback_password1").css("color", 'red');
+             $("#feedback_password1").css("display", '');
+             newObject5.innerHTML = "请输入密码！";
+            }
+            else if(v.length<6)
+            {$("#feedback_password1").attr("class", 'glyphicon glyphicon-remove col-md-1');
+             $("#feedback_password1").css("color", 'red');
+             $("#feedback_password1").css("display", '');
+             newObject5.innerHTML = "密码长度请不少于6位！";}
+
+            else
+            { $("#feedback_password1").attr("class", 'glyphicon glyphicon-ok col-md-1');
+            $("#feedback_password1").css("color", 'green');
+            $("#feedback_password1").css("display", '');
+            newObject5.innerHTML = "";}
+
+
+        });
+        }
+           var newObject6 = document.createElement("p");
+           newObject6.id = "tip6";
+           newObject6.innerHTML = "";
+           newObject6.align = "center";
+           newObject6.setAttribute("style", "font-size:15px;color:red;margin-top:5px;");
+           newObject6.className = "col-md-3";
+           $("#feedback_password2").after(newObject6);
+
+function check_password2(v){
+        $(function() {
+
+           pw2=v;
+           if(isNULL(v))
+           { $("#feedback_password2").attr("class", 'glyphicon glyphicon-remove col-md-1');
+             $("#feedback_password2").css("color", 'red');
+             $("#feedback_password2").css("display", '');
+             newObject6.innerHTML = "请再次输入密码！";
+            }
+            else if(pw1!=pw2)
+            {$("#feedback_password2").attr("class", 'glyphicon glyphicon-remove col-md-1');
+             $("#feedback_password2").css("color", 'red');
+             $("#feedback_password2").css("display", '');
+             newObject6.innerHTML = "两次输入密码不一致！";}
+            else
+            { $("#feedback_password2").attr("class", 'glyphicon glyphicon-ok col-md-1');
+            $("#feedback_password2").css("color", 'green');
+            $("#feedback_password2").css("display", '');
+            newObject6.innerHTML = "";}
+
+
+
+        });
+        }
+</script>
+<script type="text/javascript" src="{% static 'js/laydate/laydate.js' %}"></script>
+<script type="text/javascript">
+
+//执行一个laydate实例
+laydate.render({
+  elem: '#id_birth' //指定元素
+  ,format: 'yyyy/MM/dd'
+  ,done: function(value, date, endDate){
+  { $("#feedback_birthday").attr("class", 'glyphicon glyphicon-ok col-md-1');
+            $("#feedback_birthday").css("color", 'green');
+            $("#feedback_birthday").css("display", '');
+            newObject3.innerHTML = "";}
+    console.log(value); //得到日期生成的值，如：2017-08-18
+    console.log(date); //得到日期时间对象：{year: 2017, month: 8, date: 18, hours: 0, minutes: 0, seconds: 0}
+    console.log(endDate); //得结束的日期时间对象，开启范围选择（range: true）才会返回。对象成员同上。
+    }
+   ,isInitValue: false
+   ,isInitValue: false
+});
+</script>
+{% endblock %}
+
+

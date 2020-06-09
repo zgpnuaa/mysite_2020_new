@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+ <meta charset="UTF-8">
+ <title>Bezier</title>
+ <style>
+ .canvas{
+ position: relative;
+ top: 10px;
+ display: block;
+ margin: 0 auto;
+ background-color: #817373;
+ }
+ .btn_user{
+ display: block;
+ padding: 5px;
+ margin: 0 auto;
+ border: 1px solid #aaa;
+ background-color: #F9F5F5;
+ }
+ form{
+  width: 800px;
+  margin: 0 auto;
+ }
+ </style>
+ <script src="http://libs.baidu.com/jquery/2.0.0/jquery.js" type="text/javascript"></script>
+ </head>
+ <body>
+  <form >
+   <input id="huizhi_btn" type="button" class="btn_user" value="绘制贝塞尔曲线" style="display: inline;">
+   <input id="up_btn" type="button" class="btn_user" value="升阶" style="display: inline;">
+   <input id="down_btn" type="button" class="btn_user" value="降阶" style="display: inline;">
+   <input id="clear_btn" type="button" class="btn_user" value="清空屏幕" style="display: inline;">
+  </form>
+  <canvas id="canvas" class="canvas">
+  </canvas>
+<!--  <script type="text/javascript" src="JS/bezier.js"></script>-->
+<script type="text/javascript" >
+var can = document.getElementById("canvas");         
+var ctx = can.getContext("2d");
+var arr = [];
+var isdown=true;
+var t=0;
+var s=100;
+can.width = 800;
+can.height = 400;
+$("canvas").width(800);
+$("canvas").height(400);
+$("canvas").mousedown(function(e) {
+ if(isdown){
+  newpoint(e);
+  drawline(arr);
+ }else{
+  arr=drag(arr,e);
+ }
+});
+$("#huizhi_btn").mousedown(function(e) {
+ panduan(arr);
+});
+$("#up_btn").mousedown(function(e){
+ panduan(arr);
+ arr = up(arr);
+});
+$("#down_btn").mousedown(function(e){
+ panduan(arr);
+ arr = down(arr);
+});
+$("#clear_btn").mousedown(function(e){
+ isdown=true;
+ clearall(arr);
+});
+function drag(arr, e) {
+ var e = e || event;          
+ var x = e.clientX - can.offsetLeft;             
+ var y = e.clientY - can.offsetTop;
+ console.log(can.offsetLeft + ";" + can.offsetTop);
+ arr.forEach(function(val, k) {
+  if (Math.sqrt((x - val.x) * (x - val.x) + (y - val.y) * (y - val.y)) <= 15) {
+   can.onmousemove = function(ev) {
+    can.style.cursor = 'move';                     
+    var e = ev || event;                     
+    var ax = e.clientX - can.offsetLeft;                     
+    var ay = e.clientY - can.offsetTop;
+    arr.splice(k, 1, {
+     x: ax,
+     y: ay
+    });
+    can.width = can.width;
+    getBeArr(arr);
+    drawPointLine(arr);
+   };
+   can.onmouseup = function() {  
+    can.style.cursor = 'default';                   
+    can.onmousemove = null;                     
+    can.onmouseup = null; 
+   };
+  }
+ });
+ return arr;
+}
+function panduan(arr){//判断用户点击次数函数
+ if(arr.length==0||arr.length==1){
+  alert("请点击至少两个点");
+  clearall(arr);
+ }else{
+  isdown=false;
+  getBeArr(arr);
+ }
+}
+function clearall(arr){//清空所有数据函数
+ can.width=can.width;
+ arr.splice(0,arr.length);
+}
+function newpoint(e) {//用户鼠标点击坐标存入数组
+ var e = e || event;             
+ var x = e.clientX - can.offsetLeft;             
+ var y = e.clientY - can.offsetTop + 10;
+ drawpoint(x, y);
+ var boll = {
+  x: x,
+  y: y
+ };
+ arr.push(boll);
+}
+function drawpoint(x, y) {//绘制空心点
+ ctx.beginPath();
+ ctx.strokeStyle = "blue";
+ ctx.arc(x, y, 10, 0, Math.PI * 2);
+ ctx.stroke();
+}
+function drawPointLine(arr) {//绘制Bezier曲线
+ for (var i = 0; i < arr.length; i++) {
+  drawpoint(arr[i].x,arr[i].y);
+ }
+ drawline(arr);
+}
+function drawline(arr) {//画线
+ ctx.beginPath();
+ ctx.strokeStyle = "red";
+ if (arr.length > 1) {
+  for (var i = 0; i < arr.length - 1; i++) {
+   ctx.moveTo(arr[i].x, arr[i].y);
+   ctx.lineTo(arr[i + 1].x, arr[i + 1].y);
+   ctx.stroke();
+  }
+ }
+}
+function down(arr){  //降阶函数一定的损耗
+ can.width = can.width;
+ var x=0,y=0,n=arr.length-1;
+ var r=(n-1)/2;
+ var newP=[]; //用于存储新的绘制点
+ newP.push(arr[0]);
+ for(var i=1;i<=n-2;i++){
+  x=((n*arr[i].x-i*newP[i-1].x))/(n-i);
+  y=((n*arr[i].y-i*newP[i-1].y))/(n-i);
+  newP.push({x:x,y:y});
+ }
+ newP.push(arr[n]);
+ getBeArr(newP);
+ drawPointLine(newP);
+ return newP;
+}
+function up(arr){    //升阶函数
+ can.width = can.width;
+ var newP = [];//用于存储新的绘制点
+ var x,y,n = arr.length;
+ newP.push(arr[0]);
+ for (var i = 1; i < arr.length; i++) {
+  x = i/n*arr[i-1].x + (n-i)/n*arr[i].x;
+  y = i/n*arr[i-1].y + (n-i)/n*arr[i].y;
+  newP.push({x:x,y:y});
+ }
+ newP.push(arr[n-1]);
+ getBeArr(newP);
+ drawPointLine(newP);
+ return newP;
+}
+function getBeArr(arr) {   //获得贝塞尔曲线上的所有点
+ var arrNew = [];
+ for (var t = 0; t < 1; t+=0.01) {
+  arrNew.push(getBeOne(arr,t));
+ }
+ drawline(arrNew);//画出贝塞尔曲线
+}
+function getBeOne(aurArr,t){  //递归获得贝塞尔曲线上的每一个点
+ var arrNew = [];
+ var x,y;
+ if (aurArr.length==1) {
+  return aurArr[0];
+ }
+ for (var i = 0; i < aurArr.length-1; i++) {
+  x =t*aurArr[i].x +(1-t)*aurArr[i+1].x;
+  y =t*aurArr[i].y +(1-t)*aurArr[i+1].y;
+  arrNew.push({x:x,y:y});
+ }
+ return getBeOne(arrNew,t);
+}
+/*function _run(arr,t) {
+ can.width = can.width;   //获得贝塞尔曲线上的所有点
+ run(arr,t);
+}
+function run(aurArr,t){  //递归获得贝塞尔曲线上的每一个点
+ var arrNew = [];
+ var x,y;
+ if (aurArr.length==1) {
+  t+=1/s;
+  if (t<=1.001) {
+   window.setTimeout(_run(arr,t),2000);
+  }else{
+   return ;
+  }
+ }
+ for (var i = 0; i < aurArr.length-1; i++) {
+  x =t*aurArr[i].x +(1-t)*aurArr[i+1].x;
+  y =t*aurArr[i].y +(1-t)*aurArr[i+1].y;
+  arrNew.push({x:x,y:y});
+ }
+ drawline(arrNew);
+ return run(arrNew,t);
+}*/
+</script>
+ </body>
+</html>
+

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load article_tags %}
+
+{% block title %}检索内容{% endblock %}
+{% block content %}
+
+<link type="text/css" rel="stylesheet" href="{% static 'css/common.css' %}">
+<link type="text/css" rel="stylesheet" href="{% static 'css/search.css' %}">
+<div class="header">
+    <div class="" >
+        <form id="searchForm" action="{% url 'article:haystack_search' %}" method="get">
+            <div class="search-keyword" >
+                {# 搜索输入文本框必须命名为q #}
+                <input id="q" name="q" type="text"  style="margin-left:15px;" class="keyword" maxlength="120"/>
+                <input id="subSerch" type="submit" style="margin-left:15px;"  class="search-button" value="搜 索" />
+            </div>
+        </form>
+    </div>
+</div>
+<table class="table table-hover"  style="width:100%">
+    <tr class="">
+        <td class="" >作者</td>
+        <td class="" >题目</td>
+        <td class="" >栏目</td>
+        <td class="" >标签</td>
+        <td class="" >内容</td>
+    </tr>
+    {% if  show_all %}
+    {% for item in page.object_list %}
+    <tr class="js_songlist__child" >
+
+        <td class="" style="margin-left:8px"><a href="{% url 'article:author_articles' item.author.username %}">{{ item.author }}</a></td>
+        <td class=""  style="margin-left:8px"><a href="{{item.get_url_path}}">{{ item.title }}</a></td>
+        <td class=""  style="margin-left:8px">{{ item.column.column  }}</td>
+        <td class=""  style="margin-left:8px">
+            {% for tag in item.article_tag.all %}
+            <div >{{  tag.tag  }}</div>
+            {% endfor %}
+        </td>
+        <td class="songlist__album">{{ item.body|slice:'70'  }}</td>
+    </tr>
+    {% endfor %}
+    {% else %}
+    {% load highlight %}
+    {% for item in page.object_list %}
+    <tr class="child-list">
+        <td  class=""  style="margin-left:8px"><a href="{% url 'article:author_articles' item.object.author.username %}">{% highlight item.object.author with query %}</a></td>
+        <td  class=""  style="margin-left:8px"><a href="{{item.object.get_url_path}}">{% highlight item.object.title with query %}</a></td>
+        <td  class=""  style="margin-left:8px">{% highlight item.object.column.column  with query %}</td>
+        <td  class=""  style="margin-left:8px">
+            {% for tag in item.object.article_tag.all %}
+            <span>{% highlight tag.tag  with query %}</span>
+            {% endfor %}
+        </td>
+        <td class=""  style="margin-left:8px">{% highlight item.object.body  with query %}</td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+</table>
+    {# 分页导航 #}
+    <div class="page-box" style="margin-bottom:30px">
+    <div class="pagebar" id="pageBar">
+    {# 上一页的URL地址 #}
+    {% if page.has_previous %}
+        {% if query %}
+            <a href="{% url 'article:haystack_search' %}?q={{ query }}&amp;page={{ page.previous_page_number }}" class="prev">上一页</a>
+        {% else %}
+            <a href="{% url 'article:haystack_search' %}?page={{ page.previous_page_number }}" class="prev">上一页</a>
+        {% endif %}
+    {% endif %}
+    {# 列出所有的URL地址 #}
+    {% for num in page.paginator.page_range %}
+        {% if num == page.number %}
+            <span class="sel">{{ page.number }}</span>
+        {% else %}
+            {% if query %}
+                <a href="{% url 'article:haystack_search' %}?q={{ query }}&amp;page={{ num }}" target="_self">{{num}}</a>
+            {% else %}
+                <a href="{% url 'article:haystack_search' %}?page={{ num }}" target="_self">{{num}}</a>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+    {# 下一页的URL地址 #}
+    {% if page.has_next %}
+        {% if query %}
+            <a href="{% url 'article:haystack_search' %}?q={{ query }}&amp;page={{ page.next_page_number }}" class="next">下一页</a>
+        {% else %}
+            <a href="{% url 'article:haystack_search' %}?page={{ page.next_page_number }}" class="next">下一页</a>
+        {% endif %}
+    {% endif %}
+    </div>
+    </div>
+
+
+{% endblock %}

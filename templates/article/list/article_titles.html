@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% load article_tags %}
+
+{% block title %}文章列表{% endblock %}
+{%block content %}
+
+<div class="row text-center vertical-middle-sm">
+    <h3>"There is only one heroism in the world: to see the world as it is and to love it."</h3>
+    <p>共有{% total_articles %}篇文章</p>
+</div>
+<link type="text/css" rel="stylesheet" href="{% static 'css/common.css' %}">
+<link type="text/css" rel="stylesheet" href="{% static 'css/search.css' %}">
+
+<link href="{% static 'css/fontawesome-free-5.8.1-web/css/all.min.css' %}" rel="stylesheet">
+<link href="{% static 'Hover-master/css/hover-min.css' %}" rel="stylesheet">
+<div class="container">
+    <div class="col-md-9" >
+    {% for article in articles %}
+    <div class="list-group-item hvr-glow" style="width:100%;border-color:LightGrey ;margin-top:15px;border-top-left-radius:5px;border-top-right-radius:5px;border-bottom-left-radius:5px;border-bottom-right-radius:5px;background-color:white ;">
+        <a href="{{article.get_url_path}}" class="list-group-item  active" style="width：100%；margin-top:10px;margin-left: 0px;background-color:white ;border:none; border-top-left-radius:10px;border-top-right-radius:10px;border-bottom-left-radius:10px;border-bottom-right-radius:10px; "  >
+            <h3 class="list-group-item-heading hvr-forward"  style="color:black;">{{article.title}}</h3>
+        </a>
+        <!--<p class="list-group-item-text" style="margin-top:10px"><a href="{% url 'article:author_articles' article.author.username %}" style="color:white ;"  class="badge badge-info">{{article.author.username}}</a></p>-->
+        <!--<p class="list-group-item-text" style="margin-top:10px">概要：{{article.body|slice:'70'|linebreaks}}</p>-->
+        {% if  article.column %}
+        <p style="margin-left: 10px;margin-top:10px;"><span><a href="{% url 'article:column_filter' article.column.column %}" style="color:#F5DEB3;   ;border:solid;background-color:White;height:30px;" class="label label-default hvr-grow-shadow">{{article.column.column}}</a></span>
+         {% endif %}
+            {% for tag in article.article_tag.all %}
+              <span><a href="{% url 'article:tag_filter' tag.tag %}" style="color:Gray  ;background-color:GhostWhite ;height:16px;" class="badge badge-light hvr-float-shadow">{{tag.tag}}</a></span>
+         {% endfor %}
+        </p>
+        <p class="list-group-item-text text-muted" style="margin-top:10px"> <span style="margin-left: 10px;color:#6495ED;"><a href="{% url 'article:author_articles' article.author.username %}" class="hvr-icon-buzz" style="margin-right:8px;color:#6495ED;" ><i style="margin-right:4px;color:#6495ED;" class="fas fa-user hvr-icon"></i>{{article.author.first_name}}</a><i style="margin-left:8px;margin-right:8px;color:DeepSkyBlue    ;" class="fas fa-eye"></i>{% dict_template all_views article %}<i style="margin-left:20px;margin-right:8px;color:LawnGreen  ;" class="fas fa-comments"><i style="margin-left:8px;">{% dict_template all_comments article %}</i></i></span><span style="margin-left:20px"><i style="margin-right:8px;color:#CD5C5C;" class="fas fa-thumbs-up"></i><i  style="margin-right:8px;color:#CD5C5C;">{{article.users_like.count}}</i></span><i class="fas fa-clock" style="margin-left: 20px;color:#6FB7B7	;"><i style="margin-left:8px;">{% create_time article %}</i></i></p>
+
+    </div>
+    {% endfor %}
+        <div>
+    {% include "paginator.html" %}
+            </div>
+    </div>
+    <div class="col-md-3">
+        <hr style="margin-bottom:15px;margin-top:15px">
+        <div class="">
+
+        <form id="searchForm" action="{% url 'article:haystack_search' %}" method="get">
+            <div class="search-keyword" style="height:35px;">
+                {# 搜索输入文本框必须命名为q #}
+                <input id="q" name="q" type="text"  class="form-control " style="margin-top:10px" maxlength="120" placeholder="站内搜索"/>
+            </div>
+            <input id="subSerch" type="submit" style="margin-top:10px" class="btn btn-primary" value="搜 索" />
+        </form>
+
+        </div><!--end header-->
+        <div class="none">
+        <hr style="margin-bottom:15px;margin-top:15px">
+        <div class="hvr-glow" style="width:100%">
+        <p class="text-center "><h4>最新文章</h4></p>
+        {% latest_articles 6 %}
+        </div>
+        <hr  style="margin-bottom:15px;margin-top:15px">
+        <div class="hvr-glow" style="width:100%">
+        <p class="text-center"><h4>最受欢迎文章</h4></p>
+        <ul>
+            {% for article_rank in most_viewed %}
+            <li>
+                <a href="{{article_rank.get_url_path}}" class="hvr-forward"  style="color:Orange ;">{{article_rank.title}}</a>
+            </li>
+            {% endfor %}
+        </ul>
+
+        </div>
+        <hr style="margin-bottom:15px;margin-top:15px">
+        <div class="hvr-glow" style="width:100%">
+        <p class="text-center"><h4>评论最多文章</h4></p>
+        {% most_commented_articles as most_comments %}
+        <ul>
+            {% for comment_article in most_comments %}
+            <li>
+                <a href="{{comment_article.get_url_path}}" class="hvr-forward" style="color:Orange ;">{{comment_article.title}}</a>
+            </li>
+            {% endfor %}
+        </ul>
+        </div>
+         </div>
+    </div>
+</div>
+<style>
+    @media screen and (max-width: 560px) { .none{display:none; }}
+</style>
+{% endblock %}

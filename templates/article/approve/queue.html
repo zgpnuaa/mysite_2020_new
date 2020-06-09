@@ -1,0 +1,67 @@
+{% extends "article/base.html" %}
+{% load staticfiles %}
+{% block title %}文章列表{% endblock %}
+{% block content %}
+<div>
+    <h4>流程记录</h4>
+  <h5>文章:{{article.title}}</h5>
+    <table class="table table-hover">
+        <tr>
+            <td>序号</td>
+            <td>当前处理人</td>
+            <td>当前处理</td>
+            <td>当前状态</td>
+            <td>处理意见</td>
+           <td>处理时间</td>
+           <td>下一步处理人</td>
+        </tr>
+        {% for state in states %}
+        <tr id={{state.id}}>
+            <td>{{forloop.counter}}</td>
+            <td><a href="{% url 'article:author_articles' state.this_step_user.username %}" class="hvr-icon-buzz" style="margin-right:8px;color:#6495ED;" ><i style="margin-right:4px;color:#6495ED;" class="fas fa-user hvr-icon"></i>{{state.this_step_user.first_name}}</a></td>
+            <td>
+                {% if state.this_step_handle == 0 %}
+                      草稿制作
+                  {% elif state.this_step_handle == 1  %}
+                    发起审批
+                 {% elif state.this_step_handle == 2  %}
+                    同意
+                 {% elif state.this_step_handle == 3  %}
+                     驳回
+                 {% elif state.this_step_handle == 4  %}
+                      撤回
+                 {% elif state.this_step_handle == 5  %}
+                     删除
+                {% endif %}
+                 </td>
+            <td>{% if state.this_step_state == 0 %}
+                      草稿
+                  {% elif state.this_step_state == 1  %}
+                    审批中
+                 {% elif state.this_step_state == 2  %}
+                    已发布
+                 {% elif state.this_step_state == 3  %}
+                     被驳回
+                 {% elif state.this_step_state == 4  %}
+                      已撤回
+                 {% elif state.this_step_state == 5  %}
+                     已删除
+                {% endif %}
+            </td>
+            <td style="text-align:center;vertical-align:middle;">
+              {{state.this_step_opinion}}
+                       </td>
+          <td>{{state.this_step_time}}</td>
+            <td>
+            {% for user in  state.next_step_user.all %}
+                <span><a href="{% url 'article:author_articles' user.username %}" class="hvr-icon-buzz" style="margin-right:8px;color:#6495ED;" ><i style="margin-right:4px;color:#6495ED;" class="fas fa-user hvr-icon"></i>{{user.first_name}}</a>,&nbsp</span>
+                 {% endfor %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+        {% include "paginator.html" %}
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block title %}登录{% endblock %}
+
+{% block content %}
+<div class="row text-center vertical-middle-sm">
+    <h2>欢迎登录!</h2>
+    <form class="form-horizontal" action="." method="post">{% csrf_token %}
+        <!--{{form.as_p}}-->
+        <div class="form-group">
+            <label for="{{ form.username.id_for_label }}" class="col-md-5 control-label" >用户名</label>
+            <div class="col-md-1 text-center">{{form.username}}</div>
+        </div>
+        <div class="form-group">
+            <label for="{{ form.password.id_for_label }}" class="col-md-5 control-label" >密码</label>
+            <div class="col-md-1 text-center">{{form.password}}</div>
+        </div>
+        <p style="margin-top:10px">忘记密码?请<a href="{% url 'account:password_reset' %}">重置</a> 。没有帐号?请<a href="{% url 'account:user_register' %}">注册</a>。</p>
+        <input type="submit" class="btn btn-primary btn-lg" value="登录">
+    </form>
+
+    <p style="color:grey;margin-top:18px;">——使用其他账号登录——</p>
+    <a href="{% url 'social:begin' 'weibo' %}"><img src="{% static '/images/weibo.jpeg' %}" style="height:20px"></a>&nbsp<a href="{% url 'social:begin' 'qq' %}"><img src="{% static '/images/qq2.jpg' %}" style="height:28px"></a>&nbsp&nbsp<a href="{% url 'social:begin' 'github' %}"><img src="{% static '/images/github.jpg' %}" style="height:25px"></a><br>
+    <!--<p style="color:lightgrey;margin-top:10px;">————————————————</p>-->
+
+
+</div>
+{% endblock %}
+

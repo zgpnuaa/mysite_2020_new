@@ -1,0 +1,99 @@
+{% extends "article/base.html" %}
+{% load staticfiles %}
+{% block title %}文章列表{% endblock %}
+{% block content %}
+<div>
+    <h4>工单处理</h4>
+  <h5>文章:{{article.title}}</h5>
+    <table class="table table-hover">
+        <tr>
+            <td  style="text-align:center;vertical-align:middle;">序号</td>
+            <td  style="text-align:center;vertical-align:middle;">工单发起人</td>
+            <td  style="text-align:center;vertical-align:middle;">文章</td>
+            <td  style="text-align:center;vertical-align:middle;">工单发起时间</td>
+            <td  style="text-align:center;vertical-align:middle;">处理</td>
+        </tr>
+        {% for process in processes %}
+        <tr id={{process.id}}>
+            <td  style="text-align:center;vertical-align:middle;">{{forloop.counter}}</td>
+            <td  style="text-align:center;vertical-align:middle;"><a href="{% url 'article:author_articles' process.applicant %}" class="hvr-icon-buzz" style="margin-right:8px;" ><i style="margin-right:4px;" class="fas fa-user hvr-icon"></i>{{process.applicant.first_name}}</a></td>
+            <td  style="text-align:center;vertical-align:middle;"><a href="{{ process.article.get_absolute_url }}" data-toggle="tooltip" data-placement="top" title="查看文章">{{process.article.title}}</a> </td>
+            <td  style="text-align:center;vertical-align:middle;">{{process.application_time}}</td>
+            <td  style="text-align:center;vertical-align:middle;"><a name="approve" href="javascript:" onclick="approve_article(this,{{process.id}})"><span class="glyphicon glyphicon-transfer"  data-toggle="tooltip" data-placement="top" title="审批"></span></a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% include "paginator.html" %}
+</div>
+
+<script type="text/javascript" src="{% static 'js/layer.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/jquery.js' %}"></script>
+
+<script type="text/javascript">
+    function approve_article(the, process_id){
+        var index = layer.open({
+            type: 1,
+            skin: "layui-layer-rim",
+            area: ["600px", "400px"],
+            title: "审批",
+            content: '<div class="text-center" style="margin-top:20px"><div class="layui-input-inline"><input class="ccc" id = "approyes" name="choice" type="radio" lay-filter="choice"  value="1"  checked=true >同意 <input  class="ccc"  id = "approno" name="choice" type="radio"  lay-filter="choice" value="0" style="margin-left:10px" >驳回 </div><div style="margin-top:10px">审批意见:</div><div style="margin-top:8px"><textarea id="opinion"   cols="40"   rows="6"   style="OVERFLOW:   hidden" placeholder="同意发布">同意发布。</textarea></div> </div>',
+            btn: ['提交', '取消'],
+            yes: function(index, layero){
+
+               $(".layui-layer-btn0").attr('disabled',true);
+                          $(".layui-layer-btn0").css("pointer-events","none");
+                          $(".layui-layer-btn0").text("提交中...");
+                          var approve_state;
+                        if($("#approyes").prop('checked')==true)
+                        {approve_state = "yes";}
+                        else
+                        {approve_state = "no"}
+                        var opinion = $("#opinion").val();
+                        console.log(approve_state);
+                        console.log(opinion);
+
+                    $.ajax({
+                        url: '{% url "article:approve_article" %}',
+                        type: 'POST',
+                        data: { "process_id":process_id, "approve_state":approve_state, "opinion":opinion},
+                        success:function(e){
+                                if(e=="2"){
+                                  $(".layui-layer-btn0").attr('disabled',false);
+                                     $(".layui-layer-btn0").css("pointer-events","auto");
+                                    $(".layui-layer-btn0").text("确认");
+                                    layer.msg("出错了!");
+                                    }
+                                    else if(e=="4")
+                                    {layer.msg("流程已被撤回!");parent.location.reload();}
+                                    else if(e=="3")
+                                    {layer.msg("流程已被其他人处理!");parent.location.reload();}
+                                    else if(e=="5")
+                                    {layer.msg("流程已被其他人处理!");parent.location.reload();}
+                                    else {
+
+                                     $(".layui-layer-btn0").attr("disabled",true);
+                                    $(".layui-layer-btn0").css("pointer-events","none");
+                                    layer.msg("提交成功!");
+                                    parent.location.reload();}
+                             },
+                         });
+
+                   },
+            btn2: function(index, layero){
+                    layer.close(index);
+                    }
+           });
+           $(".ccc").bind('click', function(){
+                  $("#opinion").text("同意发布。");
+                  var sex = $("input[type=radio]:checked").val();
+                   if(sex=="1") {$("#opinion").text("同意发布。"); }
+                   else {$("#opinion").text("请修改！");}
+
+
+           });
+
+       }
+</script>
+
+{% endblock %}

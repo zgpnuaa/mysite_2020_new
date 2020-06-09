@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% load article_tags %}
+
+{% block title %}通讯录{% endblock %}
+{%block content %}
+<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+    <link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}"/>
+    <div class="container">
+        <div class="page-header">
+            <h1>通讯录
+                <small>Websocket好友实时聊天测试中...不支持IE10以下版本浏览器</small>
+            </h1>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div id="user-list" class="list-group">
+                    <a href="" class="list-group-item disabled">
+                        <h4 class="list-group-item-heading">通讯录</h4>
+                        {# Users go here #}
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <h4 class="panel-title"></h4>
+                    </div>
+                    <div>
+                        <ul id="messages" class="messages">
+                            {# Messages go here #}
+                        </ul>
+                    </div>
+                    <div class="panel-footer">
+                        <div class="input-group">
+                            <input id="chat-input" type="text"
+                                   class="form-control input"
+                                   placeholder=""
+                                   maxlength="500">
+                            <span class="input-group-btn">
+                            <button class="btn btn-info btn"
+                                    id="btn-send">
+                                发送</button>
+                        </span>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let sessionKey = '{{ request.session.session_key }}';
+        let currentUser = '{{ request.user.username }}';
+        let recipient_now = '{{recipient_now.username}}';
+    </script>
+    <script src="{% static 'js/app_privateletter.js' %}"></script>
+
+{% endblock %}

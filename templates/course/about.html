@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block title %}关于{% endblock %}
+{% block content %}
+<div class="container">
+    <!--<p ><img src="{% static '/images/liuhuaisland0.png' %}" width="90px"></p>-->
+    <h1 class="text-center">欢迎访问！</h1>
+    <p class="text-center">本站是一个学习项目，主要用于个人生活、工作和学习的记录分享以及个人测试和数据存储！</p>
+    <p class="text-center">希望与大家讨论和交流！</p>
+    <p class="text-center">联系：<img src="{% static 'images/weixin.jpeg' %}" style="height:22px" onclick="displayImage()"></p>
+</div>
+<script type="text/javascript" src="{% static 'js/layer.js' %}"></script>
+<script type="text/javascript">
+    function displayImage(){
+            layer.open({
+                    type: 1,
+                    title: '微信',
+                    skin: 'layui-layer-rim',
+                    area: ['50%', '50%'],
+                    content: '<div class="text-center"><img src="{% static 'images/mywechat.png' %}" width="50%""/><p>zgpnuaa</p></div>',
+
+            });
+            }
+</script>
+{% endblock %}

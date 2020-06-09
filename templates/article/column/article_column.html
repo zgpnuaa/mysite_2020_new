@@ -1,0 +1,137 @@
+{% extends "article/base.html" %}
+{% load staticfiles %}
+{% block title %}栏目管理{% endblock %}
+{% block content %}
+<div>
+    <h4>我的文章栏目</h4>
+    <p class="text-right"><button id="addcolumn" onclick="add_column()" class="btn btn-primary">创建栏目</button> </p>
+    <table class="table table-hover">
+        <tr>
+            <td>序号</td>
+            <td>栏目名称</td>
+            <td>操作</td>
+        </tr>
+        {% for column in columns %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td><a href="{% url 'article:column_filter' column.column %}" >{{ column.column }}</a></td>
+            <td><a name="edit" href="javascript:" onclick="edit_column(this, {{column.id }})"><span class="glyphicon glyphicon-pencil" data-toggle="tooltip" data-placement="top" title="编辑栏目"></span> </a>
+            <a name="delete" href="javascript:" onclick="del_column(this,{{column.id}})"><span class="glyphicon glyphicon-trash" style="margin-left:20px;" data-toggle="tooltip" data-placement="top" title="删除栏目"></span> </a>
+            </td>
+        </tr>
+        {% empty %}
+        <p>您还没有文章栏目，请创建栏目。</p>
+        {% endfor %}
+    </table>
+</div>
+<script type="text/javascript" src="{% static 'js/jquery.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/layer.js' %}"></script>
+<script type="text/javascript">
+    function add_column(){
+        var index = layer.open({
+            type: 1,
+            skin: "layui-layer-rim",
+            area: ["400px", "200px"],
+            title: "创建栏目",
+            content: '<div class="text-center" style="margin-top:20px"><p>请输入栏目名称：</p><p>{{ column_form.column }}</p></div>',
+            btn: ['确认', '取消'],
+            yes: function(index, layero){
+                         $(".layui-layer-btn0").attr('disabled',true);
+                          $(".layui-layer-btn0").css("pointer-events","none");
+                          $(".layui-layer-btn0").text("保存中...");
+
+                    column_name = $('#id_column').val();
+                    $.ajax({
+                        url: '{% url "article:article_column" %}',
+                        type: 'POST',
+                        data: {"column": column_name},
+                        success:function(e){
+                                if(e=="3"){
+                                   layer.msg("栏目名不能为空！");
+                                    $(".layui-layer-btn0").attr('disabled',false);
+                                    $(".layui-layer-btn0").css("pointer-events","auto");
+                                    $(".layui-layer-btn0").text("确认");
+                                } else if(e=="2"){
+                                    layer.msg("此栏目已经存在，请更换名称！");
+                                     $(".layui-layer-btn0").attr('disabled',false);
+                                     $(".layui-layer-btn0").css("pointer-events","auto");
+                                    $(".layui-layer-btn0").text("确认");
+                                    }
+                                    else {
+                                    $(".layui-layer-btn0").attr("disabled",true);
+                                    $(".layui-layer-btn0").css("pointer-events","none");
+                                     layer.msg("添加成功");
+
+                                    parent.location.reload();}
+                             },
+                         });
+                    //alert(column_name);
+                   },
+            btn2: function(index, layero){
+                    layer.close(index);
+                    }
+           });
+       }
+</script>
+<script>
+    function edit_column(the, column_id){
+        var name = $(the).parents("tr").children("td").eq(1).text();
+        console.log(name);
+        console.log($(the).parents("tr").children("td"));
+        var index = layer.open({
+                type: 1,
+                skin: "layui-layer-rim",
+                area: ["400px", "200px"],
+                title: "编辑栏目",
+                content: '<div class="text-center" style="margin-top:20px"><p>请编辑栏目名称</p><p><input type="text" id="new_name" value="'+name+'"></p></div>',
+                btn: ['确认', '取消'],
+                yes: function(index, layero){
+                        new_name = $("#new_name").val();
+                        $.ajax({
+                            url: "{% url 'article:rename_article_column' %}",
+                            type: "POST",
+                            data: {"column_id": column_id, "column_name": new_name},
+                            success: function(e){
+                                        if(e=="1"){
+                                            layer.msg("编辑成功");
+                                            parent.location.reload();
+                                            }
+                                            else{
+                                            layer.msg("修改失败")
+                                            }
+                                        },
+                             });
+                     },
+                 });
+             }
+</script>
+<script>
+    function del_column(the, column_id){
+            var name = $(the).parents("tr").children("td").eq(1).text();
+             console.log(name);
+            layer.open({
+                    type: 1,
+                    skin: "layui-layer-rim",
+                    area: ["400px", "200px"],
+                    title: "删除栏目",
+                    content: '<div class="text-center" style="margin-top:20px"><p>确定删除《' +name+ '》栏目吗？</p></div>',
+                    btn: ['确认', '取消'],
+                    yes: function(){
+                            $.ajax({
+                                    url: '{% url "article:del_article_column" %}',
+                                    type:"POST",
+                                    data:{"column_id":column_id},
+                                    success: function(e){
+                                            if(e=="1"){
+                                                    layer.msg("删除成功");
+                                                    parent.location.reload();
+                                                    }else{
+                                                        layer.msg(" 删除失败");
+                                                        }
+                                                     },
+                                     })
+                                  },
+                    });
+            }
+</script>
+{% endblock %}
