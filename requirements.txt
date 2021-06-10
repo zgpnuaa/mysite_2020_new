@@ -16,7 +16,7 @@ cryptography==2.7
 daphne==2.3.0
 defusedxml==0.6.0
 demjson==2.2.4
-Django==2.1.7
+Django==2.2.24
 django-annoying==0.10.6
 django-braces==1.13.0
 django-filter==2.2.0
