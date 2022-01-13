@@ -41,7 +41,7 @@ msgpack==0.6.1
 mysqlclient==1.4.2.post1
 oauthlib==3.0.2
 pdfminer==20191103
-Pillow==6.0.0
+Pillow==9.0.0
 pycparser==2.19
 pycryptodome==3.9.1
 PyHamcrest==1.9.0
